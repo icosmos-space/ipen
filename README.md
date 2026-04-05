@@ -2,7 +2,7 @@
 
 iPen 是一个面向长篇小说创作的多智能体系统。本文档覆盖 Golang 版本的 `core` 与 `cli` 两个模块。
 
-> 注：iPen 项目初始基于 [InkOS](https://github.com/Narcooo/inkos) 结构，用Golang进行了重写，以便于Release使用无环境依赖。
+> 注：iPen 项目初始基于 [InkOS](https://github.com/Narcooo/inkos) 结构，用Golang进行了重写，以便于用户安装使用无环境依赖。
 
 ## 模块定位
 
