@@ -1,57 +1,62 @@
 package models
 
-// ChapterConflict 表示a chapter conflict。
+// ChapterConflict 章节冲突
 type ChapterConflict struct {
-	Type       string  `json:"type"`
-	Resolution string  `json:"resolution"`
-	Detail     *string `json:"detail,omitempty"`
+	// 冲突类型
+	Type string `json:"type"`
+	// 解决方案
+	Resolution string `json:"resolution"`
+	// 详细信息
+	Detail *string `json:"detail,omitempty"`
 }
 
-// HookPressurePhase 表示the phase of hook pressure。
+// HookPressurePhase 钩子压力阶段
 type HookPressurePhase string
 
 const (
-	PhaseOpening HookPressurePhase = "opening"
-	PhaseMiddle  HookPressurePhase = "middle"
-	PhaseLate    HookPressurePhase = "late"
+	PhaseOpening HookPressurePhase = "开启阶段"
+	PhaseMiddle  HookPressurePhase = "中间阶段"
+	PhaseLate    HookPressurePhase = "晚阶段"
 )
 
-// HookMovement 表示the movement of a hook。
+// HookMovement 钩子移动
 type HookMovement string
 
 const (
-	MovementQuietHold     HookMovement = "quiet-hold"
-	MovementRefresh       HookMovement = "refresh"
-	MovementAdvance       HookMovement = "advance"
-	MovementPartialPayoff HookMovement = "partial-payoff"
-	MovementFullPayoff    HookMovement = "full-payoff"
+	MovementQuietHold     HookMovement = "安静保持"
+	MovementRefresh       HookMovement = "刷新"
+	MovementAdvance       HookMovement = "推进"
+	MovementPartialPayoff HookMovement = "部分结算"
+	MovementFullPayoff    HookMovement = "完整结算"
 )
 
-// HookPressureLevel 表示the pressure level of a hook。
+// HookPressureLevel 钩子压力等级
 type HookPressureLevel string
 
 const (
-	PressureLow      HookPressureLevel = "low"
-	PressureMedium   HookPressureLevel = "medium"
-	PressureHigh     HookPressureLevel = "high"
-	PressureCritical HookPressureLevel = "critical"
+	PressureLow      HookPressureLevel = "低"
+	PressureMedium   HookPressureLevel = "中"
+	PressureHigh     HookPressureLevel = "高"
+	PressureCritical HookPressureLevel = "严重"
 )
 
 // HookPressureReason 表示the reason for hook pressure。
 type HookPressureReason string
 
 const (
-	ReasonFreshPromise  HookPressureReason = "fresh-promise"
-	ReasonBuildingDebt  HookPressureReason = "building-debt"
-	ReasonStalePromise  HookPressureReason = "stale-promise"
-	ReasonRipePayoff    HookPressureReason = "ripe-payoff"
-	ReasonOverduePayoff HookPressureReason = "overdue-payoff"
-	ReasonLongArcHold   HookPressureReason = "long-arc-hold"
+	ReasonFreshPromise  HookPressureReason = "新鲜承诺"
+	ReasonBuildingDebt  HookPressureReason = "债务建设"
+	ReasonStalePromise  HookPressureReason = "陈旧承诺"
+	ReasonRipePayoff    HookPressureReason = "成熟结算"
+	ReasonOverduePayoff HookPressureReason = "逾期结算"
+	ReasonLongArcHold   HookPressureReason = "长期弧保持"
 )
 
-// HookPressure 表示the pressure on a hook。
+// HookPressure 钩子压力
 type HookPressure struct {
-	HookID            string             `json:"hookId"`
+	// 钩子ID
+	HookID string `json:"hookId"`
+	// 钩子类型
 	Type              string             `json:"type"`
 	Movement          HookMovement       `json:"movement"`
 	Pressure          HookPressureLevel  `json:"pressure"`
@@ -61,7 +66,7 @@ type HookPressure struct {
 	BlockSiblingHooks bool               `json:"blockSiblingHooks"`
 }
 
-// HookAgenda 表示the hook agenda for a chapter。
+// HookAgenda 钩子议程
 type HookAgenda struct {
 	PressureMap          []HookPressure `json:"pressureMap"`
 	MustAdvance          []string       `json:"mustAdvance"`

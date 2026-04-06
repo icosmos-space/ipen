@@ -1,6 +1,6 @@
 package models
 
-// RuntimeStateLanguage 表示the language for runtime state。
+// RuntimeStateLanguage 运行时状态语言
 type RuntimeStateLanguage string
 
 const (
@@ -8,26 +8,34 @@ const (
 	LanguageEN RuntimeStateLanguage = "en"
 )
 
-// StateManifest 表示the state manifest。
+// StateManifest 状态清单
+// 用于存储状态清单信息，包括模式、语言、最后应用的章节、投影版本、迁移警告等。
 type StateManifest struct {
-	SchemaVersion      int                  `json:"schemaVersion"` // always 2
-	Language           RuntimeStateLanguage `json:"language"`
-	LastAppliedChapter int                  `json:"lastAppliedChapter"`
-	ProjectionVersion  int                  `json:"projectionVersion"`
-	MigrationWarnings  []string             `json:"migrationWarnings"`
+	// 模式版本
+	SchemaVersion int `json:"schemaVersion"` // always 2
+	// 语言
+	Language RuntimeStateLanguage `json:"language"`
+	// 最后应用的章节
+	LastAppliedChapter int `json:"lastAppliedChapter"`
+	// 投影版本
+	ProjectionVersion int `json:"projectionVersion"`
+	// 迁移警告
+	MigrationWarnings []string `json:"migrationWarnings"`
 }
 
-// HookStatus 表示the status of a hook (runtime-state version)。
+// HookStatus 钩子状态
+// 表示一个钩子的状态（运行时状态版本）。
 type HookStatus string
 
 const (
 	HookStatusOpenRT        HookStatus = "open"
 	HookStatusProgressingRT HookStatus = "progressing"
-	HookStatusDeferred      HookStatus = "deferred"
-	HookStatusResolvedRT    HookStatus = "resolved"
+	HookStatusDeferred      HookStatus = "已延迟"
+	HookStatusResolvedRT    HookStatus = "已解决"
 )
 
-// HookPayoffTiming 表示when a hook is expected to pay off。
+// HookPayoffTiming 钩子支付时间
+// 表示一个钩子的支付时间（运行时状态版本）。
 type HookPayoffTiming string
 
 const (
@@ -116,8 +124,27 @@ type NewHookCandidate struct {
 
 // RuntimeStateDelta 表示a delta to apply to the runtime state。
 type RuntimeStateDelta struct {
-	Chapter            int                `json:"chapter"`
-	CurrentStatePatch  *CurrentStatePatch `json:"currentStatePatch,omitempty"`
+	// 章节
+	Chapter int `json:"chapter"`
+	// 当前状态补丁
+	CurrentStatePatch *CurrentStatePatch `json:"currentStatePatch,omitempty"`
+	// 钩子操作
+	HookOps HookOps `json:"hookOps"`
+	// 新钩子候选
+	NewHookCandidates []NewHookCandidate `json:"newHookCandidates"`
+	// 章节摘要
+	ChapterSummary *ChapterSummaryRow `json:"chapterSummary,omitempty"`
+}
+
+// RuntimeState 表示the runtime state。
+type RuntimeState struct {
+	// 章节
+	Chapter int `json:"chapter"`
+	// 当前状态事实
+	CurrentStateFacts []CurrentStateFact `json:"currentStateStateFacts"`
+	// 当前状态
+	CurrentState *CurrentStatePatch `json:"currentStatePatch,omitempty"`
+	// 钩子操作
 	HookOps            HookOps            `json:"hookOps"`
 	NewHookCandidates  []NewHookCandidate `json:"newHookCandidates"`
 	ChapterSummary     *ChapterSummaryRow `json:"chapterSummary,omitempty"`

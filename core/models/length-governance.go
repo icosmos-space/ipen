@@ -1,23 +1,23 @@
 package models
 
-// LengthCountingMode 表示the mode for counting content length。
+// LengthCountingMode 长度计数模式
 type LengthCountingMode string
 
 const (
-	CountingModeZHChars LengthCountingMode = "zh_chars"
-	CountingModeENWords LengthCountingMode = "en_words"
+	CountingModeZHChars LengthCountingMode = "中文字符"
+	CountingModeENWords LengthCountingMode = "英文单词"
 )
 
-// LengthNormalizeMode 表示the mode for normalizing length。
+// LengthNormalizeMode 长度归一化模式
 type LengthNormalizeMode string
 
 const (
-	NormalizeModeExpand   LengthNormalizeMode = "expand"
-	NormalizeModeCompress LengthNormalizeMode = "compress"
-	NormalizeModeNone     LengthNormalizeMode = "none"
+	NormalizeModeExpand   LengthNormalizeMode = "扩展"
+	NormalizeModeCompress LengthNormalizeMode = "压缩"
+	NormalizeModeNone     LengthNormalizeMode = "无"
 )
 
-// LengthSpec 表示the length specification。
+// LengthSpec 长度规格
 type LengthSpec struct {
 	Target        int                 `json:"target"`
 	SoftMin       int                 `json:"softMin"`
