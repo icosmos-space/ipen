@@ -44,7 +44,6 @@ func LoadProjectConfig(root string) (*models.ProjectConfig, error) {
 	if err = json.Unmarshal(data, &config); err != nil {
 		return nil, fmt.Errorf("ipen.json 不是合法的 JSON: %w", err)
 	}
-
 	// Apply .env overrides
 	applyEnvOverrides(config)
 
@@ -126,6 +125,8 @@ func applyEnvOverrides(config map[string]any) {
 			llmConfig["baseUrl"] = value
 		case "IPEN_LLM_MODEL":
 			llmConfig["model"] = value
+		case "IPEN_LLM_API_KEY":
+			llmConfig["apiKey"] = value
 		case "IPEN_LLM_TEMPERATURE":
 			if temp, err := strconv.ParseFloat(value, 64); err == nil {
 				llmConfig["temperature"] = temp
