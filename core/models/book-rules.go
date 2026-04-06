@@ -1,5 +1,12 @@
 package models
 
+import (
+	"regexp"
+	"strings"
+
+	"gopkg.in/yaml.v3"
+)
+
 // ProtagonistRules 表示protagonist rules。
 type ProtagonistRules struct {
 	Name                  string   `json:"name"`
@@ -38,7 +45,7 @@ type BookRules struct {
 	FatigueWordsOverride      []string            `json:"fatigueWordsOverride"`
 	AdditionalAuditDimensions []any               `json:"additionalAuditDimensions"` // number or string
 	EnableFullCastTracking    bool                `json:"enableFullCastTracking"`
-	FanficMode                *string             `json:"fanficMode,omitempty"`
+	FanficMode                *FanficMode         `json:"fanficMode,omitempty" validate:"oneof=正典延续 架空世界 性格重塑 CP向"`
 	AllowedDeviations         []string            `json:"allowedDeviations"`
 }
 
@@ -57,4 +64,39 @@ func DefaultBookRules() BookRules {
 	return BookRules{
 		Version: "1.0",
 	}
+}
+
+func ParseBookRules(raw string) (ParsedBookRules, error) {
+	// Strip markdown code block wrappers if present (LLM often wraps output in ```md ... ```)
+	stripped := raw
+	re := regexp.MustCompile(`^` + "```" + `(?:md|markdown|yaml)?\s*\n`)
+	stripped = re.ReplaceAllString(stripped, "")
+	reEnd := regexp.MustCompile(`\n` + "```" + `\s*$`)
+	stripped = reEnd.ReplaceAllString(stripped, "")
+
+	// Try to find YAML frontmatter anywhere in the text (not just at the start)
+	fmRe := regexp.MustCompile(`---\s*\n([\s\S]*?)\n---\s*\n?([\s\S]*)$`)
+	fmMatch := fmRe.FindStringSubmatch(stripped)
+
+	if fmMatch != nil {
+		frontmatter := fmMatch[1]
+		body := strings.TrimSpace(fmMatch[2])
+
+		var rules BookRules
+		if err := yaml.Unmarshal([]byte(frontmatter), &rules); err == nil {
+			// YAML parse succeeded
+			return ParsedBookRules{
+				Rules: rules,
+				Body:  body,
+			}, nil
+		}
+		// YAML parse failed — fall through to default
+	}
+
+	// No valid frontmatter found — return default rules with the raw content as body
+	rules := DefaultBookRules()
+	return ParsedBookRules{
+		Rules: rules,
+		Body:  strings.TrimSpace(stripped),
+	}, nil
 }
