@@ -50,7 +50,7 @@ type BookConfig struct {
 	// 书籍标题
 	Title string `json:"title" validate:"required,min=1"`
 	// 小说发布平台
-	Platform Platform `json:"platform" validate:"required,oneof=tomato feilu qidian other"`
+	Platform Platform `json:"platform" validate:"required,oneof=番茄 飞书 起点 其他"`
 	// 小说类型
 	Genre Genre `json:"genre" validate:"required,min=1"`
 	// 书籍状态
