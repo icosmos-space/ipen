@@ -97,7 +97,7 @@ func runBookCreate(cmd *cobra.Command, args []string) error {
 
 	if _, statErr := os.Stat(bookDir); statErr == nil {
 		if sm.IsCompleteBookDirectory(bookDir) {
-			return fmt.Errorf("book %q already exists at books/%s", bookID, bookID)
+			return fmt.Errorf("书籍 %q 已经存在于 books/%s", bookID, bookID)
 		}
 		if err := os.RemoveAll(bookDir); err != nil {
 			return err
@@ -183,11 +183,11 @@ func runBookCreate(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Created book %q (%s)\n", book.Title, bookID)
-	fmt.Printf("  Genre/Platform: %s/%s\n", book.Genre, book.Platform)
-	fmt.Printf("  Target: %d chapters, %d words/chapter\n", book.TargetChapters, book.ChapterWordCount)
-	fmt.Printf("  Location: books/%s\n", bookID)
-	fmt.Printf("  Next: ipen write next %s\n", bookID)
+	fmt.Printf("创建书籍 %q (%s)\n", book.Title, bookID)
+	fmt.Printf("  类别/平台: %s/%s\n", book.Genre, book.Platform)
+	fmt.Printf("  写作目标: %d 章节, %d 字/章\n", book.TargetChapters, book.ChapterWordCount)
+	fmt.Printf("  位置: books/%s\n", bookID)
+	fmt.Printf("  下一步: ipen write next %s\n", bookID)
 	return nil
 }
 
@@ -200,15 +200,15 @@ func bookUpdateCommand() *cobra.Command {
 		RunE:  runBookUpdate,
 	}
 
-	cmd.Flags().String("title", "", "Update title")
-	cmd.Flags().String("genre", "", "Update genre")
-	cmd.Flags().String("platform", "", "Update platform")
-	cmd.Flags().String("status", "", "Update status")
-	cmd.Flags().Int("target-chapters", 0, "Update target chapter count")
-	cmd.Flags().Int("words", 0, "Update words per chapter")
+	cmd.Flags().String("title", "", "更新书名")
+	cmd.Flags().String("genre", "", "更新类别")
+	cmd.Flags().String("platform", "", "更新平台")
+	cmd.Flags().String("status", "", "更新状态")
+	cmd.Flags().Int("target-chapters", 0, "更新目标章节数")
+	cmd.Flags().Int("words", 0, "更新每章字数")
 	cmd.Flags().Int("chapter-words", 0, "--words 的别名")
-	cmd.Flags().String("lang", "", "Update writing language")
-	cmd.Flags().Bool("json", false, "Output JSON")
+	cmd.Flags().String("lang", "", "更新写作语言")
+	cmd.Flags().Bool("json", false, "输出 JSON")
 	return cmd
 }
 
@@ -286,10 +286,10 @@ func runBookUpdate(cmd *cobra.Command, args []string) error {
 			data, _ := json.MarshalIndent(book, "", "  ")
 			fmt.Println(string(data))
 		} else {
-			fmt.Printf("Book: %s (%s)\n", book.Title, bookID)
-			fmt.Printf("  Genre/Platform: %s/%s\n", book.Genre, book.Platform)
-			fmt.Printf("  Status: %s\n", book.Status)
-			fmt.Printf("  Target: %d chapters, %d words/chapter\n", book.TargetChapters, book.ChapterWordCount)
+			fmt.Printf("书籍 %s (%s)\n", book.Title, bookID)
+			fmt.Printf("  类别/平台: %s/%s\n", book.Genre, book.Platform)
+			fmt.Printf("  状态: %s\n", book.Status)
+			fmt.Printf("  写作目标: %d 章节, %d 字/章\n", book.TargetChapters, book.ChapterWordCount)
 		}
 		return nil
 	}
@@ -308,7 +308,7 @@ func runBookUpdate(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Updated book %s\n", bookID)
+	fmt.Printf("更新书籍 %s\n", bookID)
 	return nil
 }
 
@@ -319,7 +319,7 @@ func bookListCommand() *cobra.Command {
 		RunE:  runBookList,
 	}
 
-	cmd.Flags().Bool("json", false, "Output JSON")
+	cmd.Flags().Bool("json", false, "输出 JSON")
 	return cmd
 }
 
@@ -374,11 +374,11 @@ func runBookList(cmd *cobra.Command, args []string) error {
 	}
 
 	if len(result) == 0 {
-		fmt.Println("No books found. Create one with `ipen book create --title ...`")
+		fmt.Println("未找到书籍。创建一个书籍： `ipen book create --title ...`")
 		return nil
 	}
 	for _, item := range result {
-		fmt.Printf("%s | %s | %s/%s | %s | chapters: %d\n",
+		fmt.Printf("%s | %s | %s/%s | %s | 章节: %d 章节\n",
 			item.ID, item.Title, item.Genre, item.Platform, item.Status, item.Chapters)
 	}
 	return nil
@@ -393,8 +393,8 @@ func bookDeleteCommand() *cobra.Command {
 		RunE:  runBookDelete,
 	}
 
-	cmd.Flags().Bool("force", false, "Skip confirmation prompt")
-	cmd.Flags().Bool("json", false, "Output JSON")
+	cmd.Flags().Bool("force", false, "跳过确认提示")
+	cmd.Flags().Bool("json", false, "输出 JSON")
 	return cmd
 }
 
@@ -421,13 +421,13 @@ func runBookDelete(cmd *cobra.Command, args []string) error {
 
 	if !force {
 		ok, err := askForConfirmation(
-			fmt.Sprintf("Delete %q (%s)? This will remove %d chapter(s). (y/N) ", book.Title, bookID, len(index)),
+			fmt.Sprintf("删除书籍 %q (%s)? 这将删除 %d 章节。 (y/N) ", book.Title, bookID, len(index)),
 		)
 		if err != nil {
 			return err
 		}
 		if !ok {
-			fmt.Println("Cancelled.")
+			fmt.Println("已取消")
 			return nil
 		}
 	}
@@ -445,6 +445,6 @@ func runBookDelete(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Deleted %q (%s): %d chapter(s) removed.\n", book.Title, bookID, len(index))
+	fmt.Printf("删除书籍 %q (%s): %d 章节已删除。\n", book.Title, bookID, len(index))
 	return nil
 }
