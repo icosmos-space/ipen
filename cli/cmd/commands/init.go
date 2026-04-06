@@ -129,9 +129,8 @@ func hasGlobalConfig() bool {
 func defaultProjectEnv(globalExists bool) string {
 	if globalExists {
 		return strings.Join([]string{
-			"# Project-level LLM overrides (optional)",
-			"# Global config at ~/.ipen/.env will be used by default.",
-			"# Uncomment below to override only for this project:",
+			"# 项目级别 LLM 覆写 (可选)",
+			"# 全局配置在 ~/.ipen/.env 文件中，缺省使用。",
 			"# IPEN_LLM_PROVIDER=openai",
 			"# IPEN_LLM_BASE_URL=",
 			"# IPEN_LLM_API_KEY=",
@@ -144,14 +143,14 @@ func defaultProjectEnv(globalExists bool) string {
 	}
 
 	return strings.Join([]string{
-		"# LLM Configuration",
-		"# Tip: run `ipen config set-global` once for all projects.",
+		"# LLM 配置",
+		"# 提示: 运行一次 `ipen config set-global`，为所有项目设置全局配置。",
 		"IPEN_LLM_PROVIDER=openai",
 		"IPEN_LLM_BASE_URL=",
 		"IPEN_LLM_API_KEY=",
 		"IPEN_LLM_MODEL=",
 		"",
-		"# Optional settings:",
+		"# 可选设置:",
 		"# IPEN_LLM_TEMPERATURE=0.7",
 		"# IPEN_LLM_MAX_TOKENS=8192",
 		"# IPEN_LLM_THINKING_BUDGET=0",
