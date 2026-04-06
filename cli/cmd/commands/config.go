@@ -161,7 +161,7 @@ func configSetGlobalCommand() *cobra.Command {
 			}
 
 			lines := []string{
-				"# iPen Global LLM Configuration",
+				"# iPen 全局 LLM 配置",
 				fmt.Sprintf("IPEN_LLM_PROVIDER=%s", provider),
 				fmt.Sprintf("IPEN_LLM_BASE_URL=%s", baseURL),
 				fmt.Sprintf("IPEN_LLM_API_KEY=%s", apiKey),
@@ -188,20 +188,20 @@ func configSetGlobalCommand() *cobra.Command {
 				return err
 			}
 
-			fmt.Printf("Global config saved to %s\n", coreutils.GlobalEnvPath)
+			fmt.Printf("全局配置已保存到 %s\n", coreutils.GlobalEnvPath)
 			return nil
 		},
 	}
 
-	cmd.Flags().String("provider", "", "LLM provider (openai / anthropic)")
-	cmd.Flags().String("base-url", "", "API base URL")
-	cmd.Flags().String("api-key", "", "API key")
-	cmd.Flags().String("model", "", "Model name")
-	cmd.Flags().String("temperature", "", "Temperature")
-	cmd.Flags().String("max-tokens", "", "Max output tokens")
-	cmd.Flags().String("thinking-budget", "", "Anthropic thinking budget")
-	cmd.Flags().String("api-format", "", "API format (chat / responses)")
-	cmd.Flags().String("lang", "", "Default language (zh / en)")
+	cmd.Flags().String("provider", "", "LLM提供程序 (openai / anthropic)")
+	cmd.Flags().String("base-url", "", "API基础 URL")
+	cmd.Flags().String("api-key", "", "API密钥")
+	cmd.Flags().String("model", "", "模型名称")
+	cmd.Flags().String("temperature", "", "温度")
+	cmd.Flags().String("max-tokens", "", "最大输出令牌")
+	cmd.Flags().String("thinking-budget", "", "Anthropic 思考预算")
+	cmd.Flags().String("api-format", "", "API格式 (chat / responses)")
+	cmd.Flags().String("lang", "", "默认语言 (zh / en)")
 
 	return cmd
 }
@@ -234,13 +234,13 @@ func configListCommand() *cobra.Command {
 func configShowGlobalCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "show-global",
-		Short: "Show global LLM config",
-		Long:  "Show global LLM config from ~/.ipen/.env",
+		Short: "显示全局配置 LLM 配置",
+		Long:  "从 ~/.ipen/.env显示全局配置 LLM 配置",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			content, err := os.ReadFile(coreutils.GlobalEnvPath)
 			if err != nil {
 				if os.IsNotExist(err) {
-					fmt.Println("No global config found. Run `ipen config set-global` first.")
+					fmt.Println("未找到全局配置。请先运行 ipen config set-global。")
 					return nil
 				}
 				return err
@@ -255,7 +255,7 @@ func configShowGlobalCommand() *cobra.Command {
 func configShowCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "show",
-		Short: "Show current project configuration",
+		Short: "显示当前项目配置",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			root, err := findProjectRoot()
 			if err != nil {
@@ -264,7 +264,7 @@ func configShowCommand() *cobra.Command {
 
 			config, err := readJSONMap(filepath.Join(root, "ipen.json"))
 			if err != nil {
-				return fmt.Errorf("failed to read config: %w", err)
+				return fmt.Errorf("读取配置失败: %w", err)
 			}
 
 			if llmCfg, ok := config["llm"].(map[string]any); ok {
@@ -522,9 +522,9 @@ func validateConfigKey(key string) string {
 	}
 
 	if best != "" && bestDistance <= 3 {
-		return fmt.Sprintf("unknown config key %q. did you mean %q?", key, best)
+		return fmt.Sprintf("未知配置键 %q. 你的意思是不是 %q？", key, best)
 	}
-	return fmt.Sprintf("unknown config key %q", key)
+	return fmt.Sprintf("未知配置键 %q", key)
 }
 
 func containsString(items []string, target string) bool {

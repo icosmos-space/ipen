@@ -55,8 +55,8 @@ func EvalCommand() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		RunE:  runEval,
 	}
-	cmd.Flags().Bool("json", false, "Output JSON only")
-	cmd.Flags().String("chapters", "", "Chapter range, e.g. 1-10")
+	cmd.Flags().Bool("json", false, "只输出JSON格式报告")
+	cmd.Flags().String("chapters", "", "评估的章节范围，例如：1-10")
 	return cmd
 }
 

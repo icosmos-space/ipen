@@ -17,7 +17,7 @@ func AgentCommand() *cobra.Command {
 		Short:   T(TR.CmdAgentShort),
 		Long:    T(TR.CmdAgentLong),
 		Args:    cobra.ExactArgs(1),
-		Example: "  ipen agent \"Write one chapter for my active book\" --max-turns 10",
+		Example: "  ipen agent \"为活跃状态书籍编写一章\" --max-turns 10",
 		RunE:    runAgent,
 	}
 

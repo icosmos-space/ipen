@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// ConsolidateCommand 将章节摘要整合为卷级摘要，降低长篇上下文负担。
+// ConsolidateCommand 整合书籍章节摘要为卷级摘要，降低长篇上下文负担。
 func ConsolidateCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "consolidate [book-id]",

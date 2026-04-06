@@ -125,7 +125,8 @@ func runBookCreate(cmd *cobra.Command, args []string) error {
 		CreatedAt:        now,
 		UpdatedAt:        now,
 	}
-	if err := book.Validate(); err != nil {
+	if err = book.Validate(); err != nil {
+		fmt.Println(err)
 		return err
 	}
 
@@ -138,7 +139,7 @@ func runBookCreate(cmd *cobra.Command, args []string) error {
 		brief = string(data)
 	}
 
-	if err := sm.SaveBookConfig(bookID, book); err != nil {
+	if err = sm.SaveBookConfig(bookID, book); err != nil {
 		return err
 	}
 

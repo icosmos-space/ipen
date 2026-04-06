@@ -2,8 +2,8 @@ package commands
 
 import "github.com/icosmos-space/ipen/cli/cmd/i18n"
 
-// T is shorthand for i18n.T
+// T i18n.T缩写
 func T(m map[i18n.Language]string) string { return i18n.T(m) }
 
-// TR is shorthand for i18n.Translations
+// TR i18n.Translations缩写
 var TR = i18n.Translations
