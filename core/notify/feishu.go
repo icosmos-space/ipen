@@ -9,12 +9,12 @@ import (
 	"net/http"
 )
 
-// FeishuConfig 表示Feishu notification configuration。
+// FeishuConfig 飞书消息通知配置
 type FeishuConfig struct {
 	WebhookURL string `json:"webhookUrl"`
 }
 
-// SendFeishu sends a message via Feishu
+// SendFeishu 发送飞书消息通知
 func SendFeishu(ctx context.Context, config FeishuConfig, title string, body string) error {
 	payload := map[string]any{
 		"msg_type": "interactive",
@@ -55,7 +55,7 @@ func SendFeishu(ctx context.Context, config FeishuConfig, title string, body str
 
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("feishu send failed: %d %s", resp.StatusCode, string(respBody))
+		return fmt.Errorf("飞书消息通知失败: %d %s", resp.StatusCode, string(respBody))
 	}
 
 	return nil

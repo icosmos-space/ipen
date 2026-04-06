@@ -9,13 +9,13 @@ import (
 	"net/http"
 )
 
-// TelegramConfig 表示Telegram notification configuration。
+// TelegramConfig Telegram消息通知配置
 type TelegramConfig struct {
 	BotToken string `json:"botToken"`
 	ChatID   string `json:"chatId"`
 }
 
-// SendTelegram sends a message via Telegram
+// SendTelegram 发送Telegram消息通知
 func SendTelegram(ctx context.Context, config TelegramConfig, message string) error {
 	url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", config.BotToken)
 
@@ -46,7 +46,7 @@ func SendTelegram(ctx context.Context, config TelegramConfig, message string) er
 
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("telegram send failed: %d %s", resp.StatusCode, string(respBody))
+		return fmt.Errorf("Telegram消息通知失败: %d %s", resp.StatusCode, string(respBody))
 	}
 
 	return nil

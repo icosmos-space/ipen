@@ -9,12 +9,12 @@ import (
 	"net/http"
 )
 
-// WechatWorkConfig 表示WeChat Work notification configuration。
+// WechatWorkConfig 企业微信配置
 type WechatWorkConfig struct {
 	WebhookURL string `json:"webhookUrl"`
 }
 
-// SendWechatWork sends a message via WeChat Work
+// SendWechatWork 发送企业微信消息
 func SendWechatWork(ctx context.Context, config WechatWorkConfig, message string) error {
 	payload := map[string]any{
 		"msgtype": "markdown",
@@ -44,7 +44,7 @@ func SendWechatWork(ctx context.Context, config WechatWorkConfig, message string
 
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("wechat-work send failed: %d %s", resp.StatusCode, string(respBody))
+		return fmt.Errorf("企业微信发送失败: %d %s", resp.StatusCode, string(respBody))
 	}
 
 	return nil

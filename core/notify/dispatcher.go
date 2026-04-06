@@ -9,13 +9,15 @@ import (
 	"github.com/icosmos-space/ipen/core/models"
 )
 
-// NotifyMessage 表示a notification message。
+// NotifyMessage 通知消息
 type NotifyMessage struct {
+	// 消息标题
 	Title string `json:"title"`
-	Body  string `json:"body"`
+	// 消息内容
+	Body string `json:"body"`
 }
 
-// DispatchNotification dispatches a notification to all channels
+// DispatchNotification 通知通知消息
 func DispatchNotification(ctx context.Context, channels []models.NotifyChannel, message NotifyMessage) error {
 	fullText := fmt.Sprintf("**%s**\n\n%s", message.Title, message.Body)
 
@@ -60,7 +62,7 @@ func dispatchToChannel(ctx context.Context, channel models.NotifyChannel, fullTe
 			},
 		})
 	default:
-		return fmt.Errorf("unknown channel type: %s", channel.Type)
+		return fmt.Errorf("未知消息渠道类型: %s", channel.Type)
 	}
 }
 
@@ -84,7 +86,7 @@ func DispatchWebhookEvent(ctx context.Context, channels []models.NotifyChannel, 
 				Secret: ch.Secret,
 				Events: ch.Events,
 			}, payload); err != nil {
-				fmt.Fprintf(os.Stderr, "[webhook] %s failed: %v\n", ch.WebhookURL, err)
+				fmt.Fprintf(os.Stderr, "[webhook] %s 失败: %v\n", ch.WebhookURL, err)
 			}
 		}(channel)
 	}

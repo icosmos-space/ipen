@@ -15,15 +15,15 @@ import (
 
 func TestNotifyMessage(t *testing.T) {
 	msg := NotifyMessage{
-		Title: "Test Title",
-		Body:  "Test Body",
+		Title: "测试消息标题",
+		Body:  "测试消息内容",
 	}
 
-	if msg.Title != "Test Title" {
-		t.Errorf("expected title 'Test Title', got '%s'", msg.Title)
+	if msg.Title != "测试消息标题" {
+		t.Errorf("expected title '测试消息标题', got '%s'", msg.Title)
 	}
-	if msg.Body != "Test Body" {
-		t.Errorf("expected body 'Test Body', got '%s'", msg.Body)
+	if msg.Body != "测试消息内容" {
+		t.Errorf("expected body '测试消息内容', got '%s'", msg.Body)
 	}
 }
 
@@ -31,13 +31,13 @@ func TestDispatchNotification_EmptyChannels(t *testing.T) {
 	ctx := context.Background()
 	channels := []models.NotifyChannel{}
 	message := NotifyMessage{
-		Title: "Test",
-		Body:  "Body",
+		Title: "测试消息标题",
+		Body:  "测试消息内容",
 	}
 
 	err := DispatchNotification(ctx, channels, message)
 	if err != nil {
-		t.Errorf("expected no error for empty channels, got %v", err)
+		t.Errorf("expected 无错误，但实际返回错误: %v", err)
 	}
 }
 

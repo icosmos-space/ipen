@@ -12,36 +12,41 @@ import (
 	"net/http"
 )
 
-// WebhookConfig 表示webhook configuration。
+// WebhookConfig Webhook配置
 type WebhookConfig struct {
 	URL    string   `json:"url"`
 	Secret string   `json:"secret,omitempty"`
 	Events []string `json:"events,omitempty"`
 }
 
-// WebhookEvent 表示a webhook event type。
+// WebhookEvent Webhook事件类型
 type WebhookEvent string
 
 const (
-	EventChapterComplete  WebhookEvent = "chapter-complete"
-	EventAuditPassed      WebhookEvent = "audit-passed"
-	EventAuditFailed      WebhookEvent = "audit-failed"
-	EventRevisionComplete WebhookEvent = "revision-complete"
-	EventPipelineComplete WebhookEvent = "pipeline-complete"
-	EventPipelineError    WebhookEvent = "pipeline-error"
-	EventDiagnosticAlert  WebhookEvent = "diagnostic-alert"
+	EventChapterComplete  WebhookEvent = "章节完成"
+	EventAuditPassed      WebhookEvent = "审核通过"
+	EventAuditFailed      WebhookEvent = "审核失败"
+	EventRevisionComplete WebhookEvent = "修订完成"
+	EventPipelineComplete WebhookEvent = "管道完成"
+	EventPipelineError    WebhookEvent = "管道错误"
+	EventDiagnosticAlert  WebhookEvent = "诊断警报"
 )
 
-// WebhookPayload 表示a webhook payload。
+// WebhookPayload Webhook负载
 type WebhookPayload struct {
-	Event         WebhookEvent   `json:"event"`
-	BookID        string         `json:"bookId"`
-	ChapterNumber *int           `json:"chapterNumber,omitempty"`
-	Timestamp     string         `json:"timestamp"`
-	Data          map[string]any `json:"data,omitempty"`
+	// 事件
+	Event WebhookEvent `json:"event"`
+	// 书籍ID
+	BookID string `json:"bookId"`
+	// 章节编号
+	ChapterNumber *int `json:"chapterNumber,omitempty"`
+	// 时间戳
+	Timestamp string `json:"timestamp"`
+	// 数据
+	Data map[string]any `json:"data,omitempty"`
 }
 
-// SendWebhook sends a webhook payload
+// SendWebhook 发送Webhook负载到指定URL，使用HMAC-SHA256签名
 func SendWebhook(ctx context.Context, config WebhookConfig, payload WebhookPayload) error {
 	// Filter by subscribed events
 	if len(config.Events) > 0 {
@@ -84,7 +89,7 @@ func SendWebhook(ctx context.Context, config WebhookConfig, payload WebhookPaylo
 
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("webhook POST to %s failed: %d %s", config.URL, resp.StatusCode, string(respBody))
+		return fmt.Errorf("Webhook POST %s 失败: %d %s", config.URL, resp.StatusCode, string(respBody))
 	}
 
 	return nil
