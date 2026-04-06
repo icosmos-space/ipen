@@ -33,7 +33,7 @@ const (
 	StatusDropped    BookStatus = "已废弃"
 )
 
-// FanficMode 小说模式。
+// FanficMode 同人小说模式。
 type FanficMode string
 
 const (
@@ -67,7 +67,7 @@ type BookConfig struct {
 	UpdatedAt time.Time `json:"updatedAt" validate:"required"`
 	// 父书籍ID
 	ParentBookID string `json:"parentBookId,omitempty"`
-	// 小说模式
+	// 同人小说模式
 	// 正典延续：保持与原小说的正典风格，继续发展。
 	// 架空世界：创建一个全新的世界，角色和事件发生在这个世界中。
 	// 性格重塑：改变角色的性格和行为，适应新的环境。
