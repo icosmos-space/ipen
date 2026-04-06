@@ -62,3 +62,7 @@ type TokenUsage struct {
 	// 总Token量
 	TotalTokens int `json:"totalTokens"`
 }
+
+func (tu *TokenUsage) Validate() error {
+	return validate.Struct(tu)
+}
