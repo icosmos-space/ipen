@@ -19,6 +19,9 @@ type doctorCheck struct {
 	Detail string
 }
 
+const OK = "✅->"
+const NOT_OK = "⚠️->"
+
 // DoctorCommand 检查环境与项目健康状态。
 func DoctorCommand() *cobra.Command {
 	cmd := &cobra.Command{
@@ -27,8 +30,7 @@ func DoctorCommand() *cobra.Command {
 		Long:  T(TR.CmdDoctorLong),
 		RunE:  runDoctor,
 	}
-	cmd.Flags().Bool("repair-node-runtime", false, "Write .nvmrc and .node-version pinned to Node 22")
-	cmd.Flags().Bool("check-api", false, "Run a live LLM connectivity check")
+	cmd.Flags().Bool("check-api", false, "检查 LLM 连接状态")
 	return cmd
 }
 
@@ -37,44 +39,33 @@ func runDoctor(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	repairNode, _ := cmd.Flags().GetBool("repair-node-runtime")
 	checkAPI, _ := cmd.Flags().GetBool("check-api")
 
 	checks := make([]doctorCheck, 0, 12)
 
-	if repairNode {
-		_ = os.WriteFile(filepath.Join(root, ".nvmrc"), []byte("22\n"), 0644)
-		_ = os.WriteFile(filepath.Join(root, ".node-version"), []byte("22\n"), 0644)
-		checks = append(checks, doctorCheck{
-			Name:   "Node runtime pin files",
-			OK:     true,
-			Detail: "Wrote .nvmrc and .node-version (22)",
-		})
+	if _, err = os.Stat(filepath.Join(root, "ipen.json")); err == nil {
+		checks = append(checks, doctorCheck{Name: "ipen.json", OK: true, Detail: "找到"})
+	} else {
+		checks = append(checks, doctorCheck{Name: "ipen.json", OK: false, Detail: "未找到. 运行 ipen init"})
 	}
 
-	if _, err := os.Stat(filepath.Join(root, "ipen.json")); err == nil {
-		checks = append(checks, doctorCheck{Name: "ipen.json", OK: true, Detail: "Found"})
+	if _, err = os.Stat(filepath.Join(root, ".env")); err == nil {
+		checks = append(checks, doctorCheck{Name: ".env", OK: true, Detail: "找到"})
 	} else {
-		checks = append(checks, doctorCheck{Name: "ipen.json", OK: false, Detail: "Not found. Run `ipen init`"})
-	}
-
-	if _, err := os.Stat(filepath.Join(root, ".env")); err == nil {
-		checks = append(checks, doctorCheck{Name: ".env", OK: true, Detail: "Found"})
-	} else {
-		checks = append(checks, doctorCheck{Name: ".env", OK: false, Detail: "Not found"})
+		checks = append(checks, doctorCheck{Name: ".env", OK: false, Detail: "未找到"})
 	}
 
 	globalConfigured := false
-	if raw, err := os.ReadFile(coreutils.GlobalEnvPath); err == nil {
+	if raw, errr := os.ReadFile(coreutils.GlobalEnvPath); errr == nil {
 		text := string(raw)
 		globalConfigured = strings.Contains(text, "IPEN_LLM_API_KEY=") && !strings.Contains(text, "your-api-key-here")
 	}
 	checks = append(checks, doctorCheck{
-		Name: "Global Config",
+		Name: "全局配置",
 		OK:   globalConfigured,
 		Detail: map[bool]string{
-			true:  "Found (" + coreutils.GlobalEnvPath + ")",
-			false: "Not set. Run `ipen config set-global`",
+			true:  "找到 (" + coreutils.GlobalEnvPath + ")",
+			false: "未设置. 运行 ipen config set-global",
 		}[globalConfigured],
 	})
 
@@ -105,20 +96,20 @@ func runDoctor(cmd *cobra.Command, args []string) error {
 	apiKeyOptional := coreutils.IsApiKeyOptionalForEndpoint(cfg.Provider, cfg.BaseURL)
 	hasAPIKey := apiKeyOptional || strings.TrimSpace(cfg.APIKey) != ""
 	checks = append(checks, doctorCheck{
-		Name:   "LLM API Key",
+		Name:   "LLM API 密钥",
 		OK:     hasAPIKey,
-		Detail: map[bool]string{true: "Configured", false: "Missing"}[hasAPIKey],
+		Detail: map[bool]string{true: "已配置", false: "缺失"}[hasAPIKey],
 	})
 
 	if strings.TrimSpace(cfg.Provider) != "" || strings.TrimSpace(cfg.Model) != "" || strings.TrimSpace(cfg.BaseURL) != "" {
 		checks = append(checks, doctorCheck{
-			Name:   "LLM Config",
+			Name:   "LLM 配置",
 			OK:     strings.TrimSpace(cfg.Model) != "",
 			Detail: fmt.Sprintf("provider=%s model=%s baseUrl=%s", cfg.Provider, cfg.Model, cfg.BaseURL),
 		})
 	} else if cfgErr != nil {
 		checks = append(checks, doctorCheck{
-			Name:   "LLM Config",
+			Name:   "LLM 配置",
 			OK:     false,
 			Detail: cfgErr.Error(),
 		})
@@ -127,9 +118,9 @@ func runDoctor(cmd *cobra.Command, args []string) error {
 	sm := state.NewStateManager(root)
 	books, _ := sm.ListBooks()
 	checks = append(checks, doctorCheck{
-		Name:   "Books",
+		Name:   "书籍",
 		OK:     true,
-		Detail: fmt.Sprintf("%d book(s)", len(books)),
+		Detail: fmt.Sprintf("%d 本书籍", len(books)),
 	})
 
 	legacyCount := 0
@@ -140,24 +131,24 @@ func runDoctor(cmd *cobra.Command, args []string) error {
 	}
 	if legacyCount > 0 {
 		checks = append(checks, doctorCheck{
-			Name:   "Version Migration",
+			Name:   "版本迁移检查",
 			OK:     false,
-			Detail: fmt.Sprintf("%d book(s) still use legacy state layout", legacyCount),
+			Detail: fmt.Sprintf("%d 本书籍仍使用旧状态布局", legacyCount),
 		})
 	} else if len(books) > 0 {
 		checks = append(checks, doctorCheck{
-			Name:   "Version Migration",
+			Name:   "版本迁移检查",
 			OK:     true,
-			Detail: "All books use current state layout",
+			Detail: "所有书籍都使用当前状态布局",
 		})
 	}
 
 	if checkAPI {
 		if !configLoaded {
 			checks = append(checks, doctorCheck{
-				Name:   "API Connectivity",
+				Name:   "API连接状态",
 				OK:     false,
-				Detail: "Project config is missing, cannot test API connectivity",
+				Detail: "项目配置缺失，无法测试 API连接状态",
 			})
 		} else {
 			client := llm.NewLLMClient(projectConfig.LLM)
@@ -170,13 +161,13 @@ func runDoctor(cmd *cobra.Command, args []string) error {
 			)
 			if err != nil {
 				checks = append(checks, doctorCheck{
-					Name:   "API Connectivity",
+					Name:   "API连接状态",
 					OK:     false,
 					Detail: err.Error(),
 				})
 			} else {
 				checks = append(checks, doctorCheck{
-					Name:   "API Connectivity",
+					Name:   "API连接状态",
 					OK:     true,
 					Detail: fmt.Sprintf("OK (%d tokens)", resp.Usage.TotalTokens),
 				})
@@ -184,22 +175,22 @@ func runDoctor(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	fmt.Println("iPen Doctor")
+	fmt.Println("\tiPen Doctor")
 	fmt.Println()
 	failed := 0
 	for _, check := range checks {
-		icon := "[OK]"
+		icon := OK
 		if !check.OK {
-			icon = "[!!]"
+			icon = NOT_OK
 			failed++
 		}
 		fmt.Printf("  %s %s: %s\n", icon, check.Name, check.Detail)
 	}
 	fmt.Println()
 	if failed > 0 {
-		fmt.Printf("%d issue(s) found.\n", failed)
+		fmt.Printf("找到 %d 异常.\n", failed)
 	} else {
-		fmt.Println("All checks passed.")
+		fmt.Println("所有检查均通过")
 	}
 	return nil
 }
