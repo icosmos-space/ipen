@@ -12,7 +12,7 @@ import (
 	"github.com/icosmos-space/ipen/core/models"
 )
 
-// ArchitectOutput 是the generated foundation bundle。
+// ArchitectOutput the generated foundation bundle。
 type ArchitectOutput struct {
 	StoryBible    string `json:"storyBible"`
 	VolumeOutline string `json:"volumeOutline"`
@@ -21,22 +21,22 @@ type ArchitectOutput struct {
 	PendingHooks  string `json:"pendingHooks"`
 }
 
-// ArchitectAgent generates book foundation artifacts.
+// ArchitectAgent 生成书籍基础架构。
 type ArchitectAgent struct {
 	*BaseAgent
 }
 
-// NewArchitectAgent 创建architect agent。
+// NewArchitectAgent 创建ArchitectAgent。
 func NewArchitectAgent(ctx AgentContext) *ArchitectAgent {
 	return &ArchitectAgent{BaseAgent: NewBaseAgent(ctx)}
 }
 
-// Name 返回agent name。
+// Name 返回Agent名称。
 func (a *ArchitectAgent) Name() string {
 	return "architect"
 }
 
-// GenerateFoundation generates a baseline foundation.
+// GenerateFoundation 生成基础架构。
 func (a *ArchitectAgent) GenerateFoundation(ctx context.Context, book *models.BookConfig, externalContext string, reviewFeedback string) (*ArchitectOutput, error) {
 	_ = ctx
 	if book == nil {
@@ -63,7 +63,7 @@ func (a *ArchitectAgent) GenerateFoundation(ctx context.Context, book *models.Bo
 	}, nil
 }
 
-// WriteFoundationFiles 写入foundation files to story directory。
+// WriteFoundationFiles 将基础架构文件写入故事目录。
 func (a *ArchitectAgent) WriteFoundationFiles(bookDir string, output ArchitectOutput, numericalSystem bool, language string) error {
 	storyDir := filepath.Join(bookDir, "story")
 	if err := os.MkdirAll(storyDir, 0755); err != nil {
@@ -93,7 +93,7 @@ func (a *ArchitectAgent) WriteFoundationFiles(bookDir string, output ArchitectOu
 	return nil
 }
 
-// GenerateFoundationFromImport 推断foundation from imported chapter text。
+// GenerateFoundationFromImport 从导入的章节文本推断基础架构。
 func (a *ArchitectAgent) GenerateFoundationFromImport(
 	ctx context.Context,
 	book *models.BookConfig,
@@ -138,7 +138,7 @@ func (a *ArchitectAgent) GenerateFoundationFromImport(
 	return base, nil
 }
 
-// GenerateFanficFoundation generates a fanfic-oriented foundation.
+// GenerateFanficFoundation 生成同人基础架构。
 func (a *ArchitectAgent) GenerateFanficFoundation(
 	ctx context.Context,
 	book *models.BookConfig,

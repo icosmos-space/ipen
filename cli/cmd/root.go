@@ -11,13 +11,14 @@ import (
 	"github.com/spf13/pflag"
 )
 
-// Version is set during build
+// Version 构建时设置
 var Version = "dev"
 
 var rootCmd *cobra.Command
 
 func init() {
-	cobra.MousetrapHelpText = "这是个命令行程序，请从终端启动"
+	//
+	cobra.MousetrapHelpText = "这是个命令行程序，请从终端启动。"
 }
 
 // applyLanguage updates all command descriptions based on CurrentLanguage

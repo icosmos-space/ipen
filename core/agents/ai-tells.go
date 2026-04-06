@@ -1,11 +1,11 @@
 /**
- * Structural AI-tell detection - pure rule-based analysis (no LLM).
+ * Structural AI-tell detection - 纯规则分析 (无 LLM参与).
  *
- * Detects patterns common in AI-generated Chinese text:
- * - dim 20: Paragraph length uniformity (low variance)
- * - dim 21: Filler/hedge word density
- * - dim 22: Formulaic transition patterns
- * - dim 23: List-like structure (consecutive same-prefix sentences)
+ * 检测 AI 生成中文文本中常见的模式特征:
+ * - 维度 20: 段落长度一致性 (低方差)
+ * - 维度 21: 填充词/套话 单词密度
+ * - 维度 22: 公式化过度模式
+ * - 维度 23: 列表状结构 (连续相同前缀句子序列)
  */
 package agents
 
@@ -17,7 +17,7 @@ import (
 	"unicode"
 )
 
-// AITellIssue 表示an AI-tell issue。
+// AITellIssue 表示一个AI-tell问题。
 type AITellIssue struct {
 	Severity    string `json:"severity"` // "warning" or "info"
 	Category    string `json:"category"`
@@ -25,26 +25,32 @@ type AITellIssue struct {
 	Suggestion  string `json:"suggestion"`
 }
 
-// AITellResult 表示AI-tell analysis result。
+// AITellResult 表示AI-tell分析结果。
 type AITellResult struct {
 	Issues []AITellIssue `json:"issues"`
 }
 
+// 中文套话词汇列表
 var hedgeWordsZH = []string{"似乎", "可能", "或许", "大概", "某种程度上", "一定程度上", "在某种意义上"}
+
+// 英文套话词汇列表
 var hedgeWordsEN = []string{"seems", "seemed", "perhaps", "maybe", "apparently", "in some ways", "to some extent"}
 
+// 中文过渡词词汇列表
 var transitionWordsZH = []string{"然而", "不过", "与此同时", "另一方面", "尽管如此", "话虽如此", "但值得注意的是"}
+
+// 英文过渡词词汇列表
 var transitionWordsEN = []string{"however", "meanwhile", "on the other hand", "nevertheless", "even so", "still"}
 
-// AnalyzeAITells 分析text content for structural AI-tell patterns。
+// AnalyzeAITells 分析文本内容，检测结构化AI-tell模式。
 func AnalyzeAITells(content string, language string) AITellResult {
 	var issues []AITellIssue
 	isEnglish := language == "en"
 
-	// Split into paragraphs
+	// 分段
 	paragraphs := splitParagraphs(content)
 
-	// dim 20: Paragraph length uniformity (needs >=3 paragraphs)
+	// 维度 20: 段落长度一致性 (需要 >=3 段落)
 	if len(paragraphs) >= 3 {
 		paragraphLengths := make([]int, len(paragraphs))
 		totalLen := 0
@@ -81,7 +87,7 @@ func AnalyzeAITells(content string, language string) AITellResult {
 		}
 	}
 
-	// dim 21: Hedge word density
+	// 维度 21: 套话单词密度
 	totalChars := len([]rune(content))
 	if totalChars > 0 {
 		hedgeWords := hedgeWordsZH
@@ -113,7 +119,7 @@ func AnalyzeAITells(content string, language string) AITellResult {
 		}
 	}
 
-	// dim 22: Formulaic transition repetition
+	// 维度 22: 公式化过渡重复
 	transitionWords := transitionWordsZH
 	if isEnglish {
 		transitionWords = transitionWordsEN
@@ -158,7 +164,7 @@ func AnalyzeAITells(content string, language string) AITellResult {
 		}
 	}
 
-	// dim 23: List-like structure
+	// 维度 23: 列表式结构
 	sentences := splitSentences(content, isEnglish)
 	if len(sentences) >= 3 {
 		consecutiveSamePrefix := 1
@@ -198,7 +204,7 @@ func AnalyzeAITells(content string, language string) AITellResult {
 }
 
 func splitParagraphs(content string) []string {
-	// Split by double newlines or more
+	// 按双换行符或更多换行符分段
 	re := regexp.MustCompile(`\n\s*\n`)
 	paragraphs := re.Split(content, -1)
 	var result []string
@@ -238,7 +244,7 @@ func getSentencePrefix(sentence string, isEnglish bool) string {
 		}
 		return ""
 	}
-	// Get first 2 characters for Chinese
+	// 获取中文前2个字符
 	runes := []rune(sentence)
 	if len(runes) >= 2 {
 		return string(runes[:2])
@@ -246,7 +252,7 @@ func getSentencePrefix(sentence string, isEnglish bool) string {
 	return sentence
 }
 
-// CountChineseChars 统计Chinese characters in text。
+// CountChineseChars 统计中文字符数。
 func countChineseChars(text string) int {
 	count := 0
 	for _, r := range text {
