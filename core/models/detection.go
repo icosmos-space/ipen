@@ -1,30 +1,47 @@
 package models
 
-// DetectionHistoryEntry 表示a detection/rewrite event。
+// DetectionHistoryEntry 检测&重写事件内容
 type DetectionHistoryEntry struct {
-	ChapterNumber int     `json:"chapterNumber"`
-	Timestamp     string  `json:"timestamp"`
-	Provider      string  `json:"provider"`
-	Score         float64 `json:"score"`
-	Action        string  `json:"action"` // "detect" or "rewrite"
-	Attempt       int     `json:"attempt"`
+	// 章节
+	ChapterNumber int `json:"chapterNumber"`
+	// 时间戳
+	Timestamp string `json:"timestamp"`
+	// 提供方
+	Provider string `json:"provider"`
+	// 分数
+	Score float64 `json:"score"`
+	// 操作
+	Action string `json:"action"` // "detect" or "rewrite"
+	// 尝试次数
+	Attempt int `json:"attempt"`
 }
 
-// DetectionStats 表示detection statistics。
+// DetectionStats 检测&重写统计
 type DetectionStats struct {
-	TotalDetections   int                         `json:"totalDetections"`
-	TotalRewrites     int                         `json:"totalRewrites"`
-	AvgOriginalScore  float64                     `json:"avgOriginalScore"`
-	AvgFinalScore     float64                     `json:"avgFinalScore"`
-	AvgScoreReduction float64                     `json:"avgScoreReduction"`
-	PassRate          float64                     `json:"passRate"`
-	ChapterBreakdown  []ChapterDetectionBreakdown `json:"chapterBreakdown"`
+	// 总检测数
+	TotalDetections int `json:"totalDetections"`
+	// 总重写数
+	TotalRewrites int `json:"totalRewrites"`
+	// 平均原始分数
+	AvgOriginalScore float64 `json:"avgOriginalScore"`
+	// 平均最终分数
+	AvgFinalScore float64 `json:"avgFinalScore"`
+	// 平均分数减少量
+	AvgScoreReduction float64 `json:"avgScoreReduction"`
+	// 通过率
+	PassRate float64 `json:"passRate"`
+	// 每章检测&重写统计
+	ChapterBreakdown []ChapterDetectionBreakdown `json:"chapterBreakdown"`
 }
 
-// ChapterDetectionBreakdown 表示per-chapter detection breakdown。
+// ChapterDetectionBreakdown 每章检测&重写统计
 type ChapterDetectionBreakdown struct {
-	ChapterNumber   int     `json:"chapterNumber"`
-	OriginalScore   float64 `json:"originalScore"`
-	FinalScore      float64 `json:"finalScore"`
-	RewriteAttempts int     `json:"rewriteAttempts"`
+	// 章节
+	ChapterNumber int `json:"chapterNumber"`
+	// 原始分数
+	OriginalScore float64 `json:"originalScore"`
+	// 最终分数
+	FinalScore float64 `json:"finalScore"`
+	// 重写尝试次数
+	RewriteAttempts int `json:"rewriteAttempts"`
 }
