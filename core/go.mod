@@ -7,6 +7,7 @@ require (
 	github.com/go-playground/validator/v10 v10.30.2
 	github.com/joho/godotenv v1.5.1
 	github.com/openai/openai-go v1.12.0
+	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.48.1
 )
 

@@ -1,13 +1,21 @@
 package models
 
-// GenreProfile 表示a genre profile。
+import (
+	"fmt"
+	"regexp"
+	"strings"
+
+	"gopkg.in/yaml.v3"
+)
+
+// GenreProfile
 type GenreProfile struct {
 	// 名称
 	Name string `json:"name"`
 	// ID
 	ID string `json:"id"`
 	// 语言
-	Language string `json:"language"` // "zh" or "en"
+	Language string `json:"language" validate:"required,oneof=zh en"` // "zh" or "en"
 	// 章节类型
 	ChapterTypes []string `json:"chapterTypes"`
 	FatigueWords []string `json:"fatigueWords"`
@@ -26,4 +34,26 @@ type GenreProfile struct {
 type ParsedGenreProfile struct {
 	Profile GenreProfile `json:"profile"`
 	Body    string       `json:"body"`
+}
+
+func ParseGenreProfile(raw string) (ParsedGenreProfile, error) {
+	re := regexp.MustCompile(`^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$`)
+	fmMatch := re.FindStringSubmatch(raw)
+
+	if fmMatch == nil {
+		return ParsedGenreProfile{}, fmt.Errorf("genre profile missing YAML frontmatter (--- ... ---)")
+	}
+
+	frontmatter := fmMatch[1]
+	body := strings.TrimSpace(fmMatch[2])
+
+	var profile GenreProfile
+	if err := yaml.Unmarshal([]byte(frontmatter), &profile); err != nil {
+		return ParsedGenreProfile{}, fmt.Errorf("解析 YAML 格式失败: %w", err)
+	}
+
+	return ParsedGenreProfile{
+		Profile: profile,
+		Body:    body,
+	}, nil
 }
