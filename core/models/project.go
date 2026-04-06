@@ -1,21 +1,33 @@
 package models
 
-// LLMConfig 表示the configuration for an LLM provider。
+// LLMConfig 表示LLM提供者的配置
+// 用于存储LLM提供者的配置信息，包括URL、API密钥、模型、温度、最大令牌数、思考预算等。
 type LLMConfig struct {
-	Provider       string            `json:"provider"` // "anthropic", "openai", "custom"
-	BaseURL        string            `json:"baseUrl"`
-	APIKey         string            `json:"apiKey"`
-	Model          string            `json:"model"`
-	Temperature    float64           `json:"temperature"`
-	MaxTokens      int               `json:"maxTokens"`
-	ThinkingBudget int               `json:"thinkingBudget"`
-	Extra          map[string]any    `json:"extra,omitempty"`
-	Headers        map[string]string `json:"headers,omitempty"`
-	APIFormat      string            `json:"apiFormat"` // "chat" or "responses"
-	Stream         bool              `json:"stream"`
+	//
+	Provider string `json:"provider"` // "anthropic", "openai", "custom"
+	// 基础URL
+	BaseURL string `json:"baseUrl"`
+	// API密钥
+	APIKey string `json:"apiKey"`
+	// 模型ID
+	Model string `json:"model"`
+	// 温度
+	Temperature float64 `json:"temperature"`
+	// 最大令牌数
+	MaxTokens int `json:"maxTokens"`
+	// 思考预算
+	ThinkingBudget int `json:"thinkingBudget"`
+	// 额外参数
+	Extra map[string]any `json:"extra,omitempty"`
+	// 请求头
+	Headers map[string]string `json:"headers,omitempty"`
+	// API格式
+	APIFormat string `json:"apiFormat"` // "chat" or "responses"
+	// 是否流式输出
+	Stream bool `json:"stream"`
 }
 
-// DefaultLLMConfig 返回a LLMConfig with default values。
+// DefaultLLMConfig 返回带有缺省值的LLM配置
 func DefaultLLMConfig() LLMConfig {
 	return LLMConfig{
 		Temperature:    0.7,
@@ -28,12 +40,18 @@ func DefaultLLMConfig() LLMConfig {
 
 // NotifyChannel 表示a notification channel configuration。
 type NotifyChannel struct {
-	Type       string   `json:"type"` // "telegram", "wechat-work", "feishu", "webhook"
-	BotToken   string   `json:"botToken,omitempty"`
-	ChatID     string   `json:"chatId,omitempty"`
-	WebhookURL string   `json:"webhookUrl,omitempty"`
-	Secret     string   `json:"secret,omitempty"`
-	Events     []string `json:"events,omitempty"`
+	// 通知类型
+	Type string `json:"type"` // "telegram", "wechat-work", "feishu", "webhook"
+	// 机器人Token
+	BotToken string `json:"botToken,omitempty"`
+	// 聊天ID
+	ChatID string `json:"chatId,omitempty"`
+	// Webhook URL
+	WebhookURL string `json:"webhookUrl,omitempty"`
+	// 密钥
+	Secret string `json:"secret,omitempty"`
+	// 事件
+	Events []string `json:"events,omitempty"`
 }
 
 // DetectionConfig 表示AI detection configuration。
@@ -47,7 +65,7 @@ type DetectionConfig struct {
 	MaxRetries  int     `json:"maxRetries"`
 }
 
-// DefaultDetectionConfig 返回a DetectionConfig with default values。
+// DefaultDetectionConfig 返回默认缺省值的AI检测配置
 func DefaultDetectionConfig() DetectionConfig {
 	return DetectionConfig{
 		Provider:   "custom",
@@ -56,11 +74,14 @@ func DefaultDetectionConfig() DetectionConfig {
 	}
 }
 
-// QualityGates 表示quality gate configurations。
+// QualityGates 表示质量门控配置。
 type QualityGates struct {
-	MaxAuditRetries               int     `json:"maxAuditRetries"`
-	PauseAfterConsecutiveFailures int     `json:"pauseAfterConsecutiveFailures"`
-	RetryTemperatureStep          float64 `json:"retryTemperatureStep"`
+	// 最大重试次数
+	MaxAuditRetries int `json:"maxAuditRetries"`
+	// 连续失败次数
+	PauseAfterConsecutiveFailures int `json:"pauseAfterConsecutiveFailures"`
+	// 重试温度步长
+	RetryTemperatureStep float64 `json:"retryTemperatureStep"`
 }
 
 // DefaultQualityGates 返回QualityGates with default values。
@@ -72,16 +93,21 @@ func DefaultQualityGates() QualityGates {
 	}
 }
 
-// AgentLLMOverride 表示per-agent LLM override settings。
+// AgentLLMOverride
 type AgentLLMOverride struct {
-	Model     string  `json:"model"`
-	Provider  *string `json:"provider,omitempty"`
-	BaseURL   *string `json:"baseUrl,omitempty"`
+	// 模型ID
+	Model string `json:"model"`
+	// 提供方
+	Provider *string `json:"provider,omitempty"`
+	// 基础URL
+	BaseURL *string `json:"baseUrl,omitempty"`
+	// API密钥环境变量
 	APIKeyEnv *string `json:"apiKeyEnv,omitempty"`
-	Stream    *bool   `json:"stream,omitempty"`
+	// 是否流式输出
+	Stream *bool `json:"stream,omitempty"`
 }
 
-// InputGovernanceMode 表示the input governance mode。
+// InputGovernanceMode 表示输入治理模式
 type InputGovernanceMode string
 
 const (
@@ -89,24 +115,33 @@ const (
 	GovernanceModeV2     InputGovernanceMode = "v2"
 )
 
-// ScheduleConfig 表示daemon schedule configuration。
+// ScheduleConfig 表示后台调度配置
 type ScheduleConfig struct {
+	// 雷达Cron
 	RadarCron string `json:"radarCron"`
+	// 写入Cron
 	WriteCron string `json:"writeCron"`
 }
 
-// DaemonConfig 表示daemon configuration。
+// DaemonConfig 表示后台调度配置。
 type DaemonConfig struct {
-	Schedule               ScheduleConfig `json:"schedule"`
-	MaxConcurrentBooks     int            `json:"maxConcurrentBooks"`
-	ChaptersPerCycle       int            `json:"chaptersPerCycle"`
-	RetryDelayMs           int            `json:"retryDelayMs"`
-	CooldownAfterChapterMs int            `json:"cooldownAfterChapterMs"`
-	MaxChaptersPerDay      int            `json:"maxChaptersPerDay"`
-	QualityGates           QualityGates   `json:"qualityGates"`
+	// 调度配置
+	Schedule ScheduleConfig `json:"schedule"`
+	// 最大并发书籍数
+	MaxConcurrentBooks int `json:"maxConcurrentBooks"`
+	// 每个周期的章节数
+	ChaptersPerCycle int `json:"chaptersPerCycle"`
+	// 重试延迟时间
+	RetryDelayMs int `json:"retryDelayMs"`
+	// 冷却时间
+	CooldownAfterChapterMs int `json:"cooldownAfterChapterMs"`
+	// 最大章节数
+	MaxChaptersPerDay int `json:"maxChaptersPerDay"`
+	// 质量门控配置
+	QualityGates QualityGates `json:"qualityGates"`
 }
 
-// DefaultDaemonConfig 返回a DaemonConfig with default values。
+// DefaultDaemonConfig 返回默认缺省值的后台调度配置
 func DefaultDaemonConfig() DaemonConfig {
 	return DaemonConfig{
 		Schedule: ScheduleConfig{
@@ -122,20 +157,29 @@ func DefaultDaemonConfig() DaemonConfig {
 	}
 }
 
-// ProjectConfig 表示the overall project configuration。
+// ProjectConfig 表示项目配置。
 type ProjectConfig struct {
-	Name                string              `json:"name"`
-	Version             string              `json:"version"`  // "0.1.0"
-	Language            string              `json:"language"` // "zh" or "en"
-	LLM                 LLMConfig           `json:"llm"`
-	Notify              []NotifyChannel     `json:"notify"`
-	Detection           *DetectionConfig    `json:"detection,omitempty"`
-	ModelOverrides      map[string]any      `json:"modelOverrides,omitempty"`
+	// 项目名称
+	Name string `json:"name"`
+	// 项目版本
+	Version string `json:"version"` // "0.1.0"
+	// 语言
+	Language string `json:"language"` // "zh" or "en"
+	// LLM 全局配置
+	LLM LLMConfig `json:"llm"`
+	// 通知渠道
+	Notify []NotifyChannel `json:"notify"`
+	// 检测配置
+	Detection *DetectionConfig `json:"detection,omitempty"`
+	// 模型覆写
+	ModelOverrides map[string]any `json:"modelOverrides,omitempty"`
+	// 输入治理模式
 	InputGovernanceMode InputGovernanceMode `json:"inputGovernanceMode"`
-	Daemon              DaemonConfig        `json:"daemon"`
+	// 后台配置
+	Daemon DaemonConfig `json:"daemon"`
 }
 
-// DefaultProjectConfig 返回a ProjectConfig with default values。
+// DefaultProjectConfig 返回默认缺省值的项目配置
 func DefaultProjectConfig() ProjectConfig {
 	return ProjectConfig{
 		Version:             "0.1.0",
