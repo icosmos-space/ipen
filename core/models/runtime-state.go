@@ -12,13 +12,13 @@ const (
 // 用于存储状态清单信息，包括模式、语言、最后应用的章节、投影版本、迁移警告等。
 type StateManifest struct {
 	// 模式版本
-	SchemaVersion int `json:"schemaVersion"` // always 2
+	SchemaVersion int `json:"schemaVersion" validate:"required,eq=2"` // always 2
 	// 语言
-	Language RuntimeStateLanguage `json:"language"`
+	Language RuntimeStateLanguage `json:"language" validate:"required,oneof=zh en"` // "zh" or "en"
 	// 最后应用的章节
-	LastAppliedChapter int `json:"lastAppliedChapter"`
+	LastAppliedChapter int `json:"lastAppliedChapter" validate:"required,min=0"`
 	// 投影版本
-	ProjectionVersion int `json:"projectionVersion"`
+	ProjectionVersion int `json:"projectionVersion" validate:"required,gt=1"`
 	// 迁移警告
 	MigrationWarnings []string `json:"migrationWarnings"`
 }
@@ -28,8 +28,8 @@ type StateManifest struct {
 type HookStatus string
 
 const (
-	HookStatusOpenRT        HookStatus = "open"
-	HookStatusProgressingRT HookStatus = "progressing"
+	HookStatusOpenRT        HookStatus = "未解决"
+	HookStatusProgressingRT HookStatus = "进行中"
 	HookStatusDeferred      HookStatus = "已延迟"
 	HookStatusResolvedRT    HookStatus = "已解决"
 )
@@ -39,20 +39,20 @@ const (
 type HookPayoffTiming string
 
 const (
-	TimingImmediate HookPayoffTiming = "immediate"
-	TimingNearTerm  HookPayoffTiming = "near-term"
-	TimingMidArc    HookPayoffTiming = "mid-arc"
-	TimingSlowBurn  HookPayoffTiming = "slow-burn"
-	TimingEndgame   HookPayoffTiming = "endgame"
+	TimingImmediate HookPayoffTiming = "立即"
+	TimingNearTerm  HookPayoffTiming = "短期"
+	TimingMidArc    HookPayoffTiming = "中间弧"
+	TimingSlowBurn  HookPayoffTiming = "慢烧"
+	TimingEndgame   HookPayoffTiming = "结束"
 )
 
 // HookRecord 表示a hook record。
 type HookRecord struct {
 	HookID              string            `json:"hookId"`
-	StartChapter        int               `json:"startChapter"`
+	StartChapter        int               `json:"startChapter" validate:"required,min=0"`
 	Type                string            `json:"type"`
-	Status              HookStatus        `json:"status"`
-	LastAdvancedChapter int               `json:"lastAdvancedChapter"`
+	Status              HookStatus        `json:"status" validate:"required,oneof=未解决 进行中 已延迟 已解决"`
+	LastAdvancedChapter int               `json:"lastAdvancedChapter" validate:"required,min=0"`
 	ExpectedPayoff      string            `json:"expectedPayoff"`
 	PayoffTiming        *HookPayoffTiming `json:"payoffTiming,omitempty"`
 	Notes               string            `json:"notes"`
@@ -65,7 +65,7 @@ type HooksState struct {
 
 // ChapterSummaryRow 表示a chapter summary row。
 type ChapterSummaryRow struct {
-	Chapter      int    `json:"chapter"`
+	Chapter      int    `json:"chapter" validate:"required,min=1"`
 	Title        string `json:"title"`
 	Characters   string `json:"characters"`
 	Events       string `json:"events"`
@@ -85,14 +85,14 @@ type CurrentStateFact struct {
 	Subject           string `json:"subject"`
 	Predicate         string `json:"predicate"`
 	Object            string `json:"object"`
-	ValidFromChapter  int    `json:"validFromChapter"`
+	ValidFromChapter  int    `json:"validFromChapter" validate:"min=0"`
 	ValidUntilChapter *int   `json:"validUntilChapter"` // nullable
-	SourceChapter     int    `json:"sourceChapter"`
+	SourceChapter     int    `json:"sourceChapter" validate:"min=0"`
 }
 
 // CurrentStateState 表示the current state facts。
 type CurrentStateState struct {
-	Chapter int                `json:"chapter"`
+	Chapter int                `json:"chapter" validate:"min=0"`
 	Facts   []CurrentStateFact `json:"facts"`
 }
 
