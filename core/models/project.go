@@ -4,17 +4,17 @@ package models
 // 用于存储LLM提供者的配置信息，包括URL、API密钥、模型、温度、最大令牌数、思考预算等。
 type LLMConfig struct {
 	//
-	Provider string `json:"provider"` // "anthropic", "openai", "custom"
+	Provider string `json:"provider" validate:"oneof=anthropic openai custom"` // "anthropic", "openai", "custom"
 	// 基础URL
 	BaseURL string `json:"baseUrl"`
 	// API密钥
 	APIKey string `json:"apiKey"`
 	// 模型ID
-	Model string `json:"model"`
+	Model string `json:"model" validate:"required"`
 	// 温度
 	Temperature float64 `json:"temperature"`
 	// 最大令牌数
-	MaxTokens int `json:"maxTokens"`
+	MaxTokens int `json:"maxTokens" validate:"min=1024,max=8192"`
 	// 思考预算
 	ThinkingBudget int `json:"thinkingBudget"`
 	// 额外参数
@@ -22,7 +22,7 @@ type LLMConfig struct {
 	// 请求头
 	Headers map[string]string `json:"headers,omitempty"`
 	// API格式
-	APIFormat string `json:"apiFormat"` // "chat" or "responses"
+	APIFormat string `json:"apiFormat" validate:"oneof=chat responses"` // "chat" or "responses"
 	// 是否流式输出
 	Stream bool `json:"stream"`
 }
@@ -56,13 +56,13 @@ type NotifyChannel struct {
 
 // DetectionConfig 表示AI detection configuration。
 type DetectionConfig struct {
-	Provider    string  `json:"provider"` // "gptzero", "originality", "custom"
+	Provider    string  `json:"provider" validate:"oneof=gptzero originality custom"` // "gptzero", "originality", "custom"
 	APIURL      string  `json:"apiUrl"`
 	APIKeyEnv   string  `json:"apiKeyEnv"`
 	Threshold   float64 `json:"threshold"`
 	Enabled     bool    `json:"enabled"`
 	AutoRewrite bool    `json:"autoRewrite"`
-	MaxRetries  int     `json:"maxRetries"`
+	MaxRetries  int     `json:"maxRetries" validate:"min=1,max=10"`
 }
 
 // DefaultDetectionConfig 返回默认缺省值的AI检测配置
@@ -98,7 +98,7 @@ type AgentLLMOverride struct {
 	// 模型ID
 	Model string `json:"model"`
 	// 提供方
-	Provider *string `json:"provider,omitempty"`
+	Provider *string `json:"provider,omitempty" validate:"oneof=anthropic openai custom"`
 	// 基础URL
 	BaseURL *string `json:"baseUrl,omitempty"`
 	// API密钥环境变量
