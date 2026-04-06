@@ -354,7 +354,12 @@ func (mdb *MemoryDB) ReplaceSummaries(summaries []StoredSummary) error {
 	}
 
 	for _, summary := range summaries {
-		if err := mdb.UpsertSummary(summary); err != nil {
+		if _, err := tx.Exec(
+			`INSERT OR REPLACE INTO chapter_summaries (chapter, title, characters, events, state_changes, hook_activity, mood, chapter_type)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+			summary.Chapter, summary.Title, summary.Characters, summary.Events,
+			summary.StateChanges, summary.HookActivity, summary.Mood, summary.ChapterType,
+		); err != nil {
 			return err
 		}
 	}
@@ -484,7 +489,12 @@ func (mdb *MemoryDB) ReplaceHooks(hooks []StoredHook) error {
 	}
 
 	for _, hook := range hooks {
-		if err := mdb.UpsertHook(hook); err != nil {
+		if _, err := tx.Exec(
+			`INSERT OR REPLACE INTO hooks (hook_id, start_chapter, type, status, last_advanced_chapter, expected_payoff, payoff_timing, notes)
+			 VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+			hook.HookID, hook.StartChapter, hook.Type, hook.Status,
+			hook.LastAdvancedChapter, hook.ExpectedPayoff, hook.PayoffTiming, hook.Notes,
+		); err != nil {
 			return err
 		}
 	}
