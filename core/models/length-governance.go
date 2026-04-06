@@ -19,36 +19,40 @@ const (
 
 // LengthSpec 长度规格
 type LengthSpec struct {
-	Target        int                 `json:"target"`
-	SoftMin       int                 `json:"softMin"`
-	SoftMax       int                 `json:"softMax"`
-	HardMin       int                 `json:"hardMin"`
-	HardMax       int                 `json:"hardMax"`
+	Target        int                 `json:"target"  validate:"required,min=1"`
+	SoftMin       int                 `json:"softMin"  validate:"required,min=1"`
+	SoftMax       int                 `json:"softMax"  validate:"required,min=1"`
+	HardMin       int                 `json:"hardMin"  validate:"required,min=1"`
+	HardMax       int                 `json:"hardMax"  validate:"required,min=1"`
 	CountingMode  LengthCountingMode  `json:"countingMode"`
 	NormalizeMode LengthNormalizeMode `json:"normalizeMode"`
 }
 
 // LengthTelemetry 表示length telemetry。
 type LengthTelemetry struct {
-	Target                   int                `json:"target"`
-	SoftMin                  int                `json:"softMin"`
-	SoftMax                  int                `json:"softMax"`
-	HardMin                  int                `json:"hardMin"`
-	HardMax                  int                `json:"hardMax"`
+	Target                   int                `json:"target"   validate:"required,min=1"`
+	SoftMin                  int                `json:"softMin"  validate:"required,min=1"`
+	SoftMax                  int                `json:"softMax"  validate:"required,min=1"`
+	HardMin                  int                `json:"hardMin"  validate:"required,min=1"`
+	HardMax                  int                `json:"hardMax"  validate:"required,min=1"`
 	CountingMode             LengthCountingMode `json:"countingMode"`
-	WriterCount              int                `json:"writerCount"`
-	PostWriterNormalizeCount int                `json:"postWriterNormalizeCount"`
-	PostReviseCount          int                `json:"postReviseCount"`
-	FinalCount               int                `json:"finalCount"`
+	WriterCount              int                `json:"writerCount"  validate:"required,min=0"`
+	PostWriterNormalizeCount int                `json:"postWriterNormalizeCount"  validate:"required,min=0"`
+	PostReviseCount          int                `json:"postReviseCount"  validate:"required,min=0"`
+	FinalCount               int                `json:"finalCount"  validate:"required,min=0"`
 	NormalizeApplied         bool               `json:"normalizeApplied"`
 	LengthWarning            bool               `json:"lengthWarning"`
 }
 
-// LengthWarning 表示a length warning。
+// LengthWarning 长度警告
 type LengthWarning struct {
-	Chapter      int                `json:"chapter"`
-	Target       int                `json:"target"`
-	Actual       int                `json:"actual"`
+	Chapter      int                `json:"chapter"  validate:"required,min=1"`
+	Target       int                `json:"target"  validate:"required,min=1"`
+	Actual       int                `json:"actual"  validate:"required,min=0"`
 	CountingMode LengthCountingMode `json:"countingMode"`
-	Reason       string             `json:"reason"`
+	Reason       string             `json:"reason"  validate:"required"`
+}
+
+func (lw *LengthWarning) Validate() error {
+	return validate.Struct(lw)
 }
