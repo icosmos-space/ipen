@@ -37,12 +37,12 @@ func LoadProjectConfig(root string) (*models.ProjectConfig, error) {
 	configPath := filepath.Join(root, "ipen.json")
 	data, err := os.ReadFile(configPath)
 	if err != nil {
-		return nil, fmt.Errorf("ipen.json not found in %s", root)
+		return nil, fmt.Errorf("ipen.json 未在 %s 找到", root)
 	}
 
 	var config map[string]any
 	if err = json.Unmarshal(data, &config); err != nil {
-		return nil, fmt.Errorf("ipen.json is not valid JSON: %w", err)
+		return nil, fmt.Errorf("ipen.json 不是合法的 JSON: %w", err)
 	}
 
 	// Apply .env overrides

@@ -19,10 +19,10 @@ func ComposeCommand() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		RunE:  runComposeChapter,
 	}
-	cmd.Flags().String("context", "", "Chapter guidance context")
-	cmd.Flags().String("context-file", "", "Read guidance from file")
-	cmd.Flags().Bool("json", false, "Output JSON")
-	cmd.Flags().BoolP("quiet", "q", false, "Suppress progress output")
+	cmd.Flags().String("context", "", "章节指导上下文")
+	cmd.Flags().String("context-file", "", "从文件读取指导")
+	cmd.Flags().Bool("json", false, "输出 JSON")
+	cmd.Flags().BoolP("quiet", "q", false, "静默输出进度")
 
 	chapterCmd := &cobra.Command{
 		Use:   "chapter [book-id]",
@@ -31,10 +31,10 @@ func ComposeCommand() *cobra.Command {
 		Args:  cobra.MaximumNArgs(1),
 		RunE:  runComposeChapter,
 	}
-	chapterCmd.Flags().String("context", "", "Chapter guidance context")
-	chapterCmd.Flags().String("context-file", "", "Read guidance from file")
-	chapterCmd.Flags().Bool("json", false, "Output JSON")
-	chapterCmd.Flags().BoolP("quiet", "q", false, "Suppress progress output")
+	chapterCmd.Flags().String("context", "", "章节指导上下文")
+	chapterCmd.Flags().String("context-file", "", "从文件读取指导")
+	chapterCmd.Flags().Bool("json", false, "输出 JSON")
+	chapterCmd.Flags().BoolP("quiet", "q", false, "静默输出进度")
 	cmd.AddCommand(chapterCmd)
 
 	return cmd
@@ -142,10 +142,10 @@ func runComposeChapter(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	fmt.Printf("Composed chapter %d for %q\n", chapterNumber, bookID)
-	fmt.Printf("Intent: %s\n", intentPath)
-	fmt.Printf("Context: %s\n", contextPath)
-	fmt.Printf("Rule stack: %s\n", ruleStackPath)
-	fmt.Printf("Trace: %s\n", tracePath)
+	fmt.Printf("已生成章节运行时产物 %d 为 %q\n", chapterNumber, bookID)
+	fmt.Printf("意图: %s\n", intentPath)
+	fmt.Printf("上下文: %s\n", contextPath)
+	fmt.Printf("规则栈: %s\n", ruleStackPath)
+	fmt.Printf("跟踪: %s\n", tracePath)
 	return nil
 }

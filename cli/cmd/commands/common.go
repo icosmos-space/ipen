@@ -89,16 +89,16 @@ func resolveBookID(root string, bookIDArg string) (string, error) {
 		if len(books) > 0 {
 			available = strings.Join(books, ", ")
 		}
-		return "", fmt.Errorf("book %q not found. available books: %s", bookIDArg, available)
+		return "", fmt.Errorf("书籍 %q 未找到。可用书籍： %s", bookIDArg, available)
 	}
 
 	switch len(books) {
 	case 0:
-		return "", fmt.Errorf("no books found. create one first with `ipen book create --title ...`")
+		return "", fmt.Errorf("未找到书籍。请先创建一个书籍： `ipen book create --title ...`")
 	case 1:
 		return books[0], nil
 	default:
-		return "", fmt.Errorf("multiple books found: %s. please specify a book id", strings.Join(books, ", "))
+		return "", fmt.Errorf("找到多个书籍： %s。请指定书籍ID", strings.Join(books, ", "))
 	}
 }
 
@@ -140,7 +140,7 @@ func parseOptionalIntFlag(cmd *cobra.Command, flagName string) (*int, error) {
 	}
 	value, err := strconv.Atoi(raw)
 	if err != nil {
-		return nil, fmt.Errorf("invalid --%s value %q", flagName, raw)
+		return nil, fmt.Errorf("无效 --%s 值 %q", flagName, raw)
 	}
 	return &value, nil
 }
@@ -182,7 +182,7 @@ func getLegacyMigrationHint(root, bookID string) string {
 	if err == nil && info.IsDir() {
 		return ""
 	}
-	return fmt.Sprintf("Book %q uses a legacy state layout. The next write will auto-migrate state files.", bookID)
+	return fmt.Sprintf("书籍 %q 使用了过时的状态布局。下一次写入将自动迁移状态文件。", bookID)
 }
 
 func maskAPIKey(value string) string {
