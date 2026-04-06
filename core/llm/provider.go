@@ -15,10 +15,10 @@ import (
 	"github.com/openai/openai-go/packages/param"
 )
 
-// Minimum chars to consider a partial response salvageable
+// Minimum chars to a partial responseable
 const minSalvageableChars = 500
 
-// StreamProgress 表示streaming progress。
+// StreamProgress 流响应进度
 type StreamProgress struct {
 	ElapsedMs    int64  `json:"elapsedMs"`
 	TotalChars   int    `json:"totalChars"`
@@ -26,9 +26,11 @@ type StreamProgress struct {
 	Status       string `json:"status"` // "streaming" or "done"
 }
 
-// streamMonitor 管理streaming progress tracking。
+// streamMonitor 管理流响应进度
 type streamMonitor struct {
-	totalChars   int
+	// 总字符数
+	totalChars int
+	// 中文字符数
 	chineseChars int
 	startTime    time.Time
 	onProgress   OnStreamProgress
@@ -64,7 +66,7 @@ type ErrorContext struct {
 	Model   string
 }
 
-// OnStreamProgress 是a callback function for stream progress。
+// OnStreamProgress 流响应进度回调函数
 type OnStreamProgress func(progress StreamProgress)
 
 // LLMResponse 表示an LLM response。
@@ -86,24 +88,30 @@ type ToolDefinition struct {
 	Parameters  map[string]any `json:"parameters"`
 }
 
-// ToolCall 表示a tool call。
+// ToolCall 工具调用
 type ToolCall struct {
 	ID        string `json:"id"`
 	Name      string `json:"name"`
 	Arguments string `json:"arguments"`
 }
 
-// AgentMessage 表示an agent message。
+// AgentMessage Agent消息
 type AgentMessage struct {
-	Role       string     `json:"role"` // "system", "user", "assistant", "tool"
-	Content    string     `json:"content,omitempty"`
-	ToolCalls  []ToolCall `json:"toolCalls,omitempty"`
-	ToolCallID string     `json:"toolCallId,omitempty"`
+	// 角色
+	Role string `json:"role"` // "system", "user", "assistant", "tool"
+	// 内容
+	Content string `json:"content,omitempty"`
+	// 工具调用
+	ToolCalls []ToolCall `json:"toolCalls,omitempty"`
+	// 工具调用ID
+	ToolCallID string `json:"toolCallId,omitempty"`
 }
 
-// ChatWithToolsResult 表示the result of a chat with tools。
+// ChatWithToolsResult 与工具调用的聊天结果
 type ChatWithToolsResult struct {
-	Content   string     `json:"content"`
+	// 内容
+	Content string `json:"content"`
+	// 工具调用
 	ToolCalls []ToolCall `json:"toolCalls"`
 }
 

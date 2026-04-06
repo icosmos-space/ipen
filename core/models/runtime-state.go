@@ -133,20 +133,6 @@ type RuntimeStateDelta struct {
 	// 新钩子候选
 	NewHookCandidates []NewHookCandidate `json:"newHookCandidates"`
 	// 章节摘要
-	ChapterSummary *ChapterSummaryRow `json:"chapterSummary,omitempty"`
-}
-
-// RuntimeState 表示the runtime state。
-type RuntimeState struct {
-	// 章节
-	Chapter int `json:"chapter"`
-	// 当前状态事实
-	CurrentStateFacts []CurrentStateFact `json:"currentStateStateFacts"`
-	// 当前状态
-	CurrentState *CurrentStatePatch `json:"currentStatePatch,omitempty"`
-	// 钩子操作
-	HookOps            HookOps            `json:"hookOps"`
-	NewHookCandidates  []NewHookCandidate `json:"newHookCandidates"`
 	ChapterSummary     *ChapterSummaryRow `json:"chapterSummary,omitempty"`
 	SubplotOps         []map[string]any   `json:"subplotOps"`
 	EmotionalArcOps    []map[string]any   `json:"emotionalArcOps"`
