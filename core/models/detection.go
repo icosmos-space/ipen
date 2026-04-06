@@ -1,3 +1,4 @@
+/** A single detection/rewrite event recorded in detection_history.json. */
 package models
 
 // DetectionHistoryEntry 检测&重写事件内容
@@ -11,7 +12,7 @@ type DetectionHistoryEntry struct {
 	// 分数
 	Score float64 `json:"score"`
 	// 操作
-	Action string `json:"action"` // "detect" or "rewrite"
+	Action string `json:"action" validate:"oneof=detect rewrite"` // "detect" or "rewrite"
 	// 尝试次数
 	Attempt int `json:"attempt"`
 }
