@@ -4,12 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/icosmos-space/ipen/core/llm"
 	"github.com/icosmos-space/ipen/core/models"
 	"github.com/icosmos-space/ipen/core/state"
 	"github.com/spf13/cobra"
@@ -85,7 +88,8 @@ func runWriteNext(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	runner := buildRunner(config, root, quiet)
+	streamOutput := newCLIStreamOutput(!asJSON && !quiet, os.Stdout, "writer")
+	runner := buildRunner(config, root, quiet, streamOutput.Callback(), nil)
 	sm := state.NewStateManager(root)
 	results := make([]map[string]any, 0, count)
 
@@ -115,6 +119,7 @@ func runWriteNext(cmd *cobra.Command, args []string) error {
 		}
 
 		result, runErr := runner.RunChapterPipeline(context.Background(), bookID, chapterNumber)
+		streamOutput.Finish()
 		unlockErr := releaseLock()
 		if runErr != nil {
 			return runErr
@@ -251,8 +256,10 @@ func runWriteRewrite(cmd *cobra.Command, args []string) error {
 		fmt.Printf("State restored from chapter %d snapshot.\n", restoreFrom)
 	}
 
-	runner := buildRunner(config, root, false)
+	streamOutput := newCLIStreamOutput(!asJSON, os.Stdout, "writer")
+	runner := buildRunner(config, root, false, streamOutput.Callback(), nil)
 	result, err := runner.RunChapterPipeline(context.Background(), bookID, chapter)
+	streamOutput.Finish()
 	if err != nil {
 		return err
 	}
@@ -375,4 +382,69 @@ func chapterNumberFromFilename(filename string) int {
 		return -1
 	}
 	return number
+}
+
+type cliStreamOutput struct {
+	enabled       bool
+	out           io.Writer
+	allowedLabels map[string]struct{}
+	mu            sync.Mutex
+	wrote         bool
+}
+
+func newCLIStreamOutput(enabled bool, out io.Writer, labels ...string) *cliStreamOutput {
+	allowedLabels := make(map[string]struct{}, len(labels))
+	for _, label := range labels {
+		label = strings.TrimSpace(label)
+		if label != "" {
+			allowedLabels[label] = struct{}{}
+		}
+	}
+	return &cliStreamOutput{
+		enabled:       enabled,
+		out:           out,
+		allowedLabels: allowedLabels,
+	}
+}
+
+func (s *cliStreamOutput) Callback() llm.OnStreamChunk {
+	if !s.enabled || s.out == nil {
+		return nil
+	}
+
+	return func(chunk llm.StreamChunk) {
+		if chunk.Text == "" {
+			return
+		}
+		if len(s.allowedLabels) > 0 {
+			if _, ok := s.allowedLabels[chunk.Label]; !ok {
+				return
+			}
+		}
+
+		text := strings.ToValidUTF8(chunk.Text, "\uFFFD")
+		if text == "" {
+			return
+		}
+
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		_, _ = io.WriteString(s.out, text)
+		s.wrote = true
+	}
+}
+
+func (s *cliStreamOutput) Finish() {
+	if !s.enabled || s.out == nil {
+		return
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if !s.wrote {
+		return
+	}
+
+	_, _ = io.WriteString(s.out, "\n")
+	s.wrote = false
 }

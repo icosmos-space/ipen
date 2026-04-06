@@ -8,7 +8,6 @@ import (
 	"github.com/icosmos-space/ipen/cli/cmd/commands"
 	"github.com/icosmos-space/ipen/cli/cmd/i18n"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 )
 
 // Version 构建时设置
@@ -19,65 +18,6 @@ var rootCmd *cobra.Command
 func init() {
 	//
 	cobra.MousetrapHelpText = "这是个命令行程序，请从终端启动。"
-}
-
-// applyLanguage updates all command descriptions based on CurrentLanguage
-func applyLanguage() {
-	if i18n.CurrentLanguage == i18n.LangEn {
-		applyEnglish()
-	}
-}
-
-func applyEnglish() {
-	// Root command
-	rootCmd.Short = i18n.T(i18n.Translations.RootShort)
-	rootCmd.Long = i18n.T(i18n.Translations.RootLong)
-
-	// Update all persistent flags
-	rootCmd.PersistentFlags().VisitAll(func(flag *pflag.Flag) {
-		switch flag.Name {
-		case "config":
-			flag.Usage = T(Translations.FlagConfig)
-		case "log-level":
-			flag.Usage = T(Translations.FlagLogLevel)
-		case "verbose":
-			flag.Usage = T(Translations.FlagVerbose)
-		case "lang":
-			flag.Usage = T(Translations.FlagLang)
-		}
-	})
-
-	// Update local flags
-	rootCmd.Flags().VisitAll(func(flag *pflag.Flag) {
-		switch flag.Name {
-		case "help":
-			flag.Usage = T(Translations.RootHelp)
-		case "version":
-			flag.Usage = T(Translations.RootVer)
-		}
-	})
-
-	// Update child commands
-	for _, cmd := range rootCmd.Commands() {
-		updateCommandEnglish(cmd)
-	}
-}
-
-func updateCommandEnglish(cmd *cobra.Command) {
-	// Update built-in commands
-	switch cmd.Name() {
-	case "help":
-		cmd.Short = T(Translations.CmdHelpShort)
-		cmd.Long = T(Translations.CmdHelpLong)
-	case "completion":
-		cmd.Short = T(Translations.CmdCompletionShort)
-		cmd.Long = T(Translations.CmdCompletionLong)
-	}
-
-	// Recursively update subcommands
-	for _, subCmd := range cmd.Commands() {
-		updateCommandEnglish(subCmd)
-	}
 }
 
 // detectLanguageFromArgs detects language from command line args

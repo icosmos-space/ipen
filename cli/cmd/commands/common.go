@@ -28,8 +28,14 @@ func loadConfig(root string) (*models.ProjectConfig, error) {
 	return coreutils.LoadProjectConfig(root)
 }
 
-func buildRunner(config *models.ProjectConfig, root string, quiet bool) *pipeline.PipelineRunner {
-	return pipeline.NewPipelineRunner(buildPipelineConfig(config, root, quiet))
+func buildRunner(
+	config *models.ProjectConfig,
+	root string,
+	quiet bool,
+	onStreamChunk llm.OnStreamChunk,
+	onStreamProgress llm.OnStreamProgress,
+) *pipeline.PipelineRunner {
+	return pipeline.NewPipelineRunner(buildPipelineConfigWithStreaming(config, root, quiet, onStreamChunk, onStreamProgress))
 }
 
 func buildLogger(quiet bool) coreutils.Logger {
@@ -42,6 +48,16 @@ func buildLogger(quiet bool) coreutils.Logger {
 }
 
 func buildPipelineConfig(config *models.ProjectConfig, root string, quiet bool) pipeline.PipelineConfig {
+	return buildPipelineConfigWithStreaming(config, root, quiet, nil, nil)
+}
+
+func buildPipelineConfigWithStreaming(
+	config *models.ProjectConfig,
+	root string,
+	quiet bool,
+	onStreamChunk llm.OnStreamChunk,
+	onStreamProgress llm.OnStreamProgress,
+) pipeline.PipelineConfig {
 	return pipeline.PipelineConfig{
 		Client:              llm.NewLLMClient(config.LLM),
 		Model:               config.LLM.Model,
@@ -51,6 +67,8 @@ func buildPipelineConfig(config *models.ProjectConfig, root string, quiet bool) 
 		ModelOverrides:      config.ModelOverrides,
 		InputGovernanceMode: config.InputGovernanceMode,
 		Logger:              buildLogger(quiet),
+		OnStreamChunk:       onStreamChunk,
+		OnStreamProgress:    onStreamProgress,
 	}
 }
 

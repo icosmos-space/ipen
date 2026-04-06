@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 	"unicode"
+	"unicode/utf8"
 
 	"github.com/anthropics/anthropic-sdk-go"
 	aoption "github.com/anthropics/anthropic-sdk-go/option"
@@ -26,27 +27,63 @@ type StreamProgress struct {
 	Status       string `json:"status"` // "streaming" or "done"
 }
 
+// StreamChunk 流响应文本分片
+type StreamChunk struct {
+	Text         string `json:"text"`
+	Label        string `json:"label,omitempty"`
+	ElapsedMs    int64  `json:"elapsedMs"`
+	TotalChars   int    `json:"totalChars"`
+	ChineseChars int    `json:"chineseChars"`
+	Status       string `json:"status"` // "streaming"
+}
+
 // streamMonitor 管理流响应进度
 type streamMonitor struct {
 	// 总字符数
 	totalChars int
 	// 中文字符数
-	chineseChars int
-	startTime    time.Time
-	onProgress   OnStreamProgress
+	chineseChars    int
+	startTime       time.Time
+	label           string
+	onChunkCallback OnStreamChunk
+	onProgress      OnStreamProgress
 }
 
-func createStreamMonitor(onProgress OnStreamProgress) *streamMonitor {
+func createStreamMonitor(label string, onChunk OnStreamChunk, onProgress OnStreamProgress) *streamMonitor {
 	monitor := &streamMonitor{
-		startTime:  time.Now(),
-		onProgress: onProgress,
+		startTime:       time.Now(),
+		label:           label,
+		onChunkCallback: onChunk,
+		onProgress:      onProgress,
 	}
 	return monitor
 }
 
 func (m *streamMonitor) onChunk(text string) {
-	m.totalChars += len(text)
+	if text == "" {
+		return
+	}
+	m.totalChars += utf8.RuneCountInString(text)
 	m.chineseChars += countChineseChars(text)
+	elapsedMs := time.Since(m.startTime).Milliseconds()
+	if m.onChunkCallback != nil {
+		m.onChunkCallback(StreamChunk{
+			Text:         text,
+			Label:        m.label,
+			ElapsedMs:    elapsedMs,
+			TotalChars:   m.totalChars,
+			ChineseChars: m.chineseChars,
+			Status:       "streaming",
+		})
+	}
+	if m.onProgress != nil {
+		m.onProgress(StreamProgress{
+			ElapsedMs:    elapsedMs,
+			TotalChars:   m.totalChars,
+			ChineseChars: m.chineseChars,
+			Status:       "streaming",
+		})
+	}
 }
 
 func (m *streamMonitor) stop() {
@@ -68,6 +105,9 @@ type ErrorContext struct {
 
 // OnStreamProgress 流响应进度回调函数
 type OnStreamProgress func(progress StreamProgress)
+
+// OnStreamChunk 流响应文本分片回调函数
+type OnStreamChunk func(chunk StreamChunk)
 
 // LLMResponse 表示an LLM response。
 type LLMResponse struct {
@@ -122,7 +162,7 @@ type PartialResponseError struct {
 }
 
 func (e *PartialResponseError) Error() string {
-	return fmt.Sprintf("Stream interrupted after %d chars: %v", len(e.PartialContent), e.Cause)
+	return fmt.Sprintf("Stream interrupted after %d chars: %v", utf8.RuneCountInString(e.PartialContent), e.Cause)
 }
 
 // ChatOptions 表示options for chat completion。
@@ -130,6 +170,8 @@ type ChatOptions struct {
 	Temperature      float64
 	MaxTokens        int
 	WebSearch        bool
+	StreamLabel      string
+	OnStreamChunk    OnStreamChunk
 	OnStreamProgress OnStreamProgress
 }
 
@@ -235,7 +277,17 @@ func ChatCompletion(
 	// Try streaming first if enabled
 	if client.Stream {
 		if client.Provider == "anthropic" {
-			resp, err := chatCompletionAnthropic(ctx, client, model, messages, temp, maxTokens, options.OnStreamProgress)
+			resp, err := chatCompletionAnthropic(
+				ctx,
+				client,
+				model,
+				messages,
+				temp,
+				maxTokens,
+				options.StreamLabel,
+				options.OnStreamChunk,
+				options.OnStreamProgress,
+			)
 			if err != nil {
 				// If partial response, return it
 				if partialErr, ok := err.(*PartialResponseError); ok {
@@ -252,7 +304,18 @@ func ChatCompletion(
 			}
 			return resp, nil
 		}
-		resp, err := chatCompletionOpenAI(ctx, client, model, messages, temp, maxTokens, options.WebSearch, options.OnStreamProgress)
+		resp, err := chatCompletionOpenAI(
+			ctx,
+			client,
+			model,
+			messages,
+			temp,
+			maxTokens,
+			options.WebSearch,
+			options.StreamLabel,
+			options.OnStreamChunk,
+			options.OnStreamProgress,
+		)
 		if err != nil {
 			// If partial response, return it
 			if partialErr, ok := err.(*PartialResponseError); ok {
@@ -321,6 +384,8 @@ func chatCompletionAnthropic(
 	messages []LLMMessage,
 	temperature float64,
 	maxTokens int,
+	streamLabel string,
+	onStreamChunk OnStreamChunk,
 	onStreamProgress OnStreamProgress,
 ) (*LLMResponse, error) {
 	// Extract system message
@@ -353,7 +418,7 @@ func chatCompletionAnthropic(
 		}
 	}
 
-	return streamAnthropic(ctx, client, params, onStreamProgress)
+	return streamAnthropic(ctx, client, params, streamLabel, onStreamChunk, onStreamProgress)
 }
 
 // Anthropic sync chat completion
@@ -421,13 +486,15 @@ func streamAnthropic(
 	ctx context.Context,
 	client *LLMClient,
 	params anthropic.MessageNewParams,
+	streamLabel string,
+	onStreamChunk OnStreamChunk,
 	onStreamProgress OnStreamProgress,
 ) (*LLMResponse, error) {
 	stream := client.Anthropic.Messages.NewStreaming(ctx, params)
 
 	var content strings.Builder
 	var inputTokens, outputTokens int64
-	monitor := createStreamMonitor(onStreamProgress)
+	monitor := createStreamMonitor(streamLabel, onStreamChunk, onStreamProgress)
 
 	defer monitor.stop()
 
@@ -452,7 +519,7 @@ func streamAnthropic(
 
 	if err := stream.Err(); err != nil {
 		partial := content.String()
-		if len(partial) >= minSalvageableChars {
+		if utf8.RuneCountInString(partial) >= minSalvageableChars {
 			return nil, &PartialResponseError{PartialContent: partial, Cause: err}
 		}
 		return nil, err
@@ -482,6 +549,8 @@ func chatCompletionOpenAI(
 	temperature float64,
 	maxTokens int,
 	webSearch bool,
+	streamLabel string,
+	onStreamChunk OnStreamChunk,
 	onStreamProgress OnStreamProgress,
 ) (*LLMResponse, error) {
 	// Convert messages
@@ -504,7 +573,7 @@ func chatCompletionOpenAI(
 		MaxTokens:   param.NewOpt(int64(maxTokens)),
 	}
 
-	return streamOpenAI(ctx, client, params, onStreamProgress)
+	return streamOpenAI(ctx, client, params, streamLabel, onStreamChunk, onStreamProgress)
 }
 
 // OpenAI sync chat completion
@@ -567,12 +636,14 @@ func streamOpenAI(
 	ctx context.Context,
 	client *LLMClient,
 	params openai.ChatCompletionNewParams,
+	streamLabel string,
+	onStreamChunk OnStreamChunk,
 	onStreamProgress OnStreamProgress,
 ) (*LLMResponse, error) {
 	stream := client.OpenAI.Chat.Completions.NewStreaming(ctx, params)
 	var content strings.Builder
 	var inputTokens, outputTokens int64
-	monitor := createStreamMonitor(onStreamProgress)
+	monitor := createStreamMonitor(streamLabel, onStreamChunk, onStreamProgress)
 
 	defer monitor.stop()
 
@@ -596,7 +667,7 @@ func streamOpenAI(
 
 	if err := stream.Err(); err != nil {
 		partial := content.String()
-		if len(partial) >= minSalvageableChars {
+		if utf8.RuneCountInString(partial) >= minSalvageableChars {
 			return nil, &PartialResponseError{PartialContent: partial, Cause: err}
 		}
 		return nil, err

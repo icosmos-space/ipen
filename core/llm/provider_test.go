@@ -1,7 +1,11 @@
 package llm
 
 import (
+	"context"
 	"errors"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -11,9 +15,9 @@ import (
 func TestNewLLMClient_OpenAI(t *testing.T) {
 	config := models.LLMConfig{
 		Provider:    "openai",
-		APIKey:      "test-key",
-		BaseURL:     "https://api.openai.com/v1",
-		Model:       "gpt-4",
+		APIKey:      "123456",
+		BaseURL:     "http://localhost:5001/v1",
+		Model:       "koboldcpp/qwen2.5-7b-instruct-q4_k_m",
 		Temperature: 0.7,
 		MaxTokens:   4096,
 		Stream:      true,
@@ -24,14 +28,123 @@ func TestNewLLMClient_OpenAI(t *testing.T) {
 	if client.Provider != "openai" {
 		t.Errorf("expected provider 'openai', got '%s'", client.Provider)
 	}
-	if client.Model != "gpt-4" {
-		t.Errorf("expected model 'gpt-4', got '%s'", client.Model)
+	if client.Model != "koboldcpp/qwen2.5-7b-instruct-q4_k_m" {
+		t.Errorf("expected model 'koboldcpp/qwen2.5-7b-instruct-q4_k_m', got '%s'", client.Model)
 	}
 	if client.OpenAI == nil {
 		t.Error("expected OpenAI client to be initialized")
 	}
 	if !client.Stream {
 		t.Error("expected stream to be enabled")
+	}
+	// opt := &ChatOptions{
+	// 	OnStreamChunk: func(chunk StreamChunk) {
+	// 		t.Logf("chunk: %q", chunk.Text)
+	// 	},
+	// 	OnStreamProgress: func(p StreamProgress) {
+	// 		t.Logf("progress: %+v", p)
+	// 	}}
+	// ChatCompletion(
+	// 	context.Background(),
+	// 	client,
+	// 	client.Model,
+	// 	[]LLMMessage{
+	// 		{
+	// 			Role:    "user",
+	// 			Content: "生命和生活的意义",
+	// 		},
+	// 	},
+	// 	opt,
+	// )
+}
+
+func TestChatCompletion_OpenAI_Stream(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/v1/chat/completions" {
+			t.Fatalf("unexpected path: %s", r.URL.Path)
+		}
+
+		if ct := r.Header.Get("Content-Type"); !strings.Contains(ct, "application/json") {
+			t.Fatalf("expected application/json request, got %q", ct)
+		}
+
+		w.Header().Set("Content-Type", "text/event-stream; charset=utf-8")
+		w.Header().Set("Cache-Control", "no-cache")
+
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			t.Fatal("response writer does not support flushing")
+		}
+
+		events := []string{
+			`data: {"id":"chatcmpl-1","object":"chat.completion.chunk","created":1,"model":"test-model","choices":[{"index":0,"delta":{"role":"assistant","content":"你"},"finish_reason":null}]}` + "\n\n",
+			`data: {"id":"chatcmpl-1","object":"chat.completion.chunk","created":1,"model":"test-model","choices":[{"index":0,"delta":{"content":"好"},"finish_reason":null}]}` + "\n\n",
+			`data: {"id":"chatcmpl-1","object":"chat.completion.chunk","created":1,"model":"test-model","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}` + "\n\n",
+			"data: [DONE]\n\n",
+		}
+
+		for _, event := range events {
+			if _, err := io.WriteString(w, event); err != nil {
+				t.Fatalf("failed to write event: %v", err)
+			}
+			flusher.Flush()
+		}
+	}))
+	defer server.Close()
+
+	client := NewLLMClient(models.LLMConfig{
+		Provider:    "openai",
+		APIKey:      "test-key",
+		BaseURL:     server.URL + "/v1",
+		Model:       "test-model",
+		Temperature: 0.7,
+		MaxTokens:   128,
+		Stream:      true,
+	})
+
+	var chunks []string
+	var progressUpdates []StreamProgress
+
+	resp, err := ChatCompletion(
+		context.Background(),
+		client,
+		client.Model,
+		[]LLMMessage{
+			{
+				Role:    "user",
+				Content: "请只输出“你好”",
+			},
+		},
+		&ChatOptions{
+			StreamLabel: "test",
+			OnStreamChunk: func(chunk StreamChunk) {
+				t.Logf("chunk: %q", chunk.Text)
+				chunks = append(chunks, chunk.Text)
+			},
+			OnStreamProgress: func(progress StreamProgress) {
+				t.Logf("progress: %+v", progress)
+				progressUpdates = append(progressUpdates, progress)
+			},
+		},
+	)
+	if err != nil {
+		t.Fatalf("ChatCompletion returned error: %v", err)
+	}
+
+	if got := strings.Join(chunks, ""); got != "你好" {
+		t.Fatalf("unexpected streamed content: %q", got)
+	}
+	if resp == nil {
+		t.Fatal("expected non-nil response")
+	}
+	if resp.Content != "你好" {
+		t.Fatalf("unexpected final content: %q", resp.Content)
+	}
+	if len(progressUpdates) == 0 {
+		t.Fatal("expected progress callbacks")
+	}
+	if progressUpdates[len(progressUpdates)-1].Status != "done" {
+		t.Fatalf("expected final progress status 'done', got %q", progressUpdates[len(progressUpdates)-1].Status)
 	}
 }
 
@@ -127,11 +240,18 @@ func TestCountChineseChars(t *testing.T) {
 }
 
 func TestStreamMonitor(t *testing.T) {
+	var chunks []StreamChunk
 	var progressUpdates []StreamProgress
 
-	monitor := createStreamMonitor(func(p StreamProgress) {
-		progressUpdates = append(progressUpdates, p)
-	})
+	monitor := createStreamMonitor(
+		"writer",
+		func(chunk StreamChunk) {
+			chunks = append(chunks, chunk)
+		},
+		func(p StreamProgress) {
+			progressUpdates = append(progressUpdates, p)
+		},
+	)
 
 	monitor.onChunk("Hello")
 	monitor.onChunk(" 你好")
@@ -139,19 +259,34 @@ func TestStreamMonitor(t *testing.T) {
 
 	monitor.stop()
 
-	if len(progressUpdates) != 1 {
-		t.Errorf("expected 1 progress update, got %d", len(progressUpdates))
+	if len(chunks) != 3 {
+		t.Fatalf("expected 3 chunk updates, got %d", len(chunks))
+	}
+	if chunks[0].Text != "Hello" {
+		t.Errorf("expected first chunk text %q, got %q", "Hello", chunks[0].Text)
+	}
+	if chunks[1].Label != "writer" {
+		t.Errorf("expected chunk label 'writer', got %q", chunks[1].Label)
+	}
+	if chunks[2].Status != "streaming" {
+		t.Errorf("expected chunk status 'streaming', got %q", chunks[2].Status)
 	}
 
-	lastUpdate := progressUpdates[0]
+	if len(progressUpdates) != 4 {
+		t.Fatalf("expected 4 progress updates, got %d", len(progressUpdates))
+	}
+	for i := 0; i < len(progressUpdates)-1; i++ {
+		if progressUpdates[i].Status != "streaming" {
+			t.Errorf("expected streaming status before completion, got %q at index %d", progressUpdates[i].Status, i)
+		}
+	}
+
+	lastUpdate := progressUpdates[len(progressUpdates)-1]
 	if lastUpdate.Status != "done" {
 		t.Errorf("expected status 'done', got '%s'", lastUpdate.Status)
 	}
-	if lastUpdate.TotalChars != 14 { // "Hello" (5) + " 你好" (4) + " World" (6) = 15... wait let me recalc
-		// "Hello" = 5, " 你好" = 3 (space + 2 chinese chars), " World" = 6... no
-		// Actually: len("Hello") = 5, len(" 你好") = 4 (space is 1 byte, each Chinese char is 3 bytes in UTF-8)
-		// Let me use the actual byte count
-		t.Logf("total chars: %d", lastUpdate.TotalChars)
+	if lastUpdate.TotalChars != 14 {
+		t.Errorf("expected 14 total chars, got %d", lastUpdate.TotalChars)
 	}
 	if lastUpdate.ChineseChars != 2 {
 		t.Errorf("expected 2 Chinese chars, got %d", lastUpdate.ChineseChars)
@@ -162,7 +297,7 @@ func TestStreamMonitor(t *testing.T) {
 }
 
 func TestStreamMonitorNilCallback(t *testing.T) {
-	monitor := createStreamMonitor(nil)
+	monitor := createStreamMonitor("", nil, nil)
 	monitor.onChunk("test")
 	monitor.stop() // Should not panic
 }
@@ -381,5 +516,14 @@ func TestChatOptionsDefaults(t *testing.T) {
 	}
 	if opts.MaxTokens != 0 {
 		t.Errorf("expected default maxTokens 0, got %d", opts.MaxTokens)
+	}
+	if opts.StreamLabel != "" {
+		t.Errorf("expected empty stream label, got %q", opts.StreamLabel)
+	}
+	if opts.OnStreamChunk != nil {
+		t.Error("expected nil stream chunk callback")
+	}
+	if opts.OnStreamProgress != nil {
+		t.Error("expected nil stream progress callback")
 	}
 }

@@ -23,6 +23,7 @@ type PipelineConfig struct {
 	ModelOverrides      map[string]any
 	InputGovernanceMode models.InputGovernanceMode
 	Logger              utils.Logger
+	OnStreamChunk       llm.OnStreamChunk
 	OnStreamProgress    llm.OnStreamProgress
 }
 
@@ -193,6 +194,7 @@ func (pr *PipelineRunner) planChapter(ctx context.Context, bookConfig *models.Bo
 		ProjectRoot:      pr.config.ProjectRoot,
 		BookID:           bookConfig.ID,
 		Logger:           pr.logger,
+		OnStreamChunk:    pr.config.OnStreamChunk,
 		OnStreamProgress: pr.config.OnStreamProgress,
 	}
 
@@ -222,6 +224,7 @@ func (pr *PipelineRunner) composeChapter(ctx context.Context, bookConfig *models
 		ProjectRoot:      pr.config.ProjectRoot,
 		BookID:           bookConfig.ID,
 		Logger:           pr.logger,
+		OnStreamChunk:    pr.config.OnStreamChunk,
 		OnStreamProgress: pr.config.OnStreamProgress,
 	}
 
@@ -259,6 +262,7 @@ func (pr *PipelineRunner) writeChapter(ctx context.Context, bookConfig *models.B
 		ProjectRoot:      pr.config.ProjectRoot,
 		BookID:           bookConfig.ID,
 		Logger:           pr.logger,
+		OnStreamChunk:    pr.config.OnStreamChunk,
 		OnStreamProgress: pr.config.OnStreamProgress,
 	}
 
