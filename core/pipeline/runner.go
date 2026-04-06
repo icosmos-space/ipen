@@ -34,76 +34,129 @@ type TokenUsageSummary struct {
 	TotalTokens      int `json:"totalTokens"`
 }
 
+type ChapterPipelineStatus string
+
+const (
+	ChapterPipelineStatusReadyForReview ChapterPipelineStatus = "ready-for-review"
+	ChapterPipelineStatusAuditFailed    ChapterPipelineStatus = "audit-failed"
+	ChapterPipelineStatusStateDegraded  ChapterPipelineStatus = "state-degraded"
+)
+
 // ChapterPipelineResult 表示chapter pipeline result。
 type ChapterPipelineResult struct {
 	ChapterNumber   int                     `json:"chapterNumber"`
 	Title           string                  `json:"title"`
 	WordCount       int                     `json:"wordCount"`
+	AuditResult     agents.AuditResult      `json:"auditResult"`
 	Revised         bool                    `json:"revised"`
-	Status          string                  `json:"status"` // "ready-for-review", "audit-failed", "state-degraded"
+	Status          string                  `json:"status" validate:"oneof=ready-for-review audit-failed state-degraded"` // "ready-for-review", "audit-failed", "state-degraded"
 	LengthWarnings  []string                `json:"lengthWarnings"`
 	LengthTelemetry *models.LengthTelemetry `json:"lengthTelemetry,omitempty"`
 	TokenUsage      *TokenUsageSummary      `json:"tokenUsage,omitempty"`
 }
 
-// DraftResult 表示a draft result。
+// DraftResult 原子操作结果
 type DraftResult struct {
-	ChapterNumber int    `json:"chapterNumber"`
-	Title         string `json:"title"`
-	Content       string `json:"content"`
+	ChapterNumber   int                     `json:"chapterNumber"`
+	Title           string                  `json:"title"`
+	Content         string                  `json:"content"` // 待定
+	WordCount       int                     `json:"wordCount"`
+	FilePath        string                  `json:"filePath"`
+	LengthWarnings  []string                `json:"lengthWarnings"`
+	LengthTelemetry *models.LengthTelemetry `json:"lengthTelemetry,omitempty"`
+	TokenUsage      *TokenUsageSummary      `json:"tokenUsage,omitempty"`
 }
 
 // PlanChapterResult 表示plan chapter result。
 type PlanChapterResult struct {
-	Intent         *models.ChapterIntent `json:"intent"`
-	IntentMarkdown string                `json:"intentMarkdown"`
-	RuntimePath    string                `json:"runtimePath"`
+	BookID        string   `json:"bookId"`
+	ChapterNumber int      `json:"chapterNumber"`
+	IntentPath    string   `json:"intentPath"`
+	Goal          string   `json:"goal"`
+	Conflicts     []string `json:"conflicts"`
 }
 
 // ComposeChapterResult 表示compose chapter result。
 type ComposeChapterResult struct {
-	ContextPackage *models.ContextPackage `json:"contextPackage"`
-	RuleStack      *models.RuleStack      `json:"ruleStack"`
-	Trace          *models.ChapterTrace   `json:"trace"`
+	ContextPackage *models.ContextPackage `json:"contextPackage"` // 待定
+	RuleStack      *models.RuleStack      `json:"ruleStack"`      // 待定
+	Trace          *models.ChapterTrace   `json:"trace"`          // 待定
 	ContextPath    string                 `json:"contextPath"`
 	RuleStackPath  string                 `json:"ruleStackPath"`
 	TracePath      string                 `json:"tracePath"`
 }
 
+type ReviseStatus string
+
+const (
+	ReviseStatusUnchanged      ReviseStatus = "unchanged"
+	ReviseStatusReadyForReview ReviseStatus = "ready-for-review"
+	ReviseStatusAuditFailed    ReviseStatus = "audit-failed"
+)
+
 // ReviseResult 表示revise result。
 type ReviseResult struct {
-	Content    string `json:"content"`
-	WordCount  int    `json:"wordCount"`
-	ReviseMode string `json:"reviseMode"`
+	ChapterNumber   int                     `json:"chapterNumber"`
+	WordCount       int                     `json:"wordCount"`
+	FixedIssues     []string                `json:"fixedIssues"`
+	Status          ChapterPipelineStatus   `json:"status"`
+	SkippedReason   string                  `json:"skippedReason"`
+	LengthWarnings  []string                `json:"lengthWarnings"`
+	LengthTelemetry *models.LengthTelemetry `json:"lengthTelemetry,omitempty"`
+	Applied         bool                    `json:"applied"`
+	Title           string                  `json:"title"`
+	Content         string                  `json:"content"` // 待定
 }
 
 // TruthFiles 表示truth files。
 type TruthFiles struct {
-	CurrentState     string `json:"currentState"`
-	PendingHooks     string `json:"pendingHooks"`
-	ChapterSummaries string `json:"chapterSummaries"`
+	CurrentState   string `json:"currentState"`
+	ParticleLedger string `json:"particleLedger"`
+	PendingHooks   string `json:"pendingHooks"`
+	StoryBible     string `json:"storyBible"`
+	VolumeOutline  string `json:"volumeOutline"`
+	BookRules      string `json:"bookRules"`
 }
 
 // BookStatusInfo 表示book status info。
 type BookStatusInfo struct {
 	BookID         string `json:"bookId"`
+	Title          string `json:"title"`
+	Genre          string `json:"genre"`
+	Platform       string `json:"platform"`
 	Status         string `json:"status"`
-	TargetChapters int    `json:"targetChapters"`
+	ChatperWritten int    `json:"chatperWritten"`
+	TotalWords     int    `json:"totalWords"`
+	NextChapter    int    `json:"nextChapter"`
+	Chapters       int    `json:"chapters"`
 }
 
-// ImportChaptersInput 表示import chapters input。
+type MergedAuditEvaluation struct {
+	AuditResult    agents.AuditResult    `json:"auditResult"`
+	AiTellCount    int                   `json:"aiTellCount"`
+	BlockingCount  int                   `json:"blockingCount"`
+	CriticalCount  int                   `json:"criticalCount"`
+	RepairIssues   []agents.AuditIssue   `json:"repairIssues"`
+	RepairDecision ChapterRepairDecision `json:"repairDecision"`
+}
+
+type chapter struct {
+	Title   string `json:"title"`
+	Content string `json:"content"`
+}
+
 type ImportChaptersInput struct {
-	BookID       string   `json:"bookId"`
-	BookDir      string   `json:"bookDir"`
-	ChapterFiles []string `json:"chapterFiles"`
-	StartChapter int      `json:"startChapter"`
+	BookID     string    `json:"bookId"`
+	Chapters   []chapter `json:"chapters"`
+	ResumeFrom int       `json:"resumeFrom"`
 }
 
 // ImportChaptersResult 表示import chapters result。
 type ImportChaptersResult struct {
-	ImportedCount int `json:"importedCount"`
-	StartChapter  int `json:"startChapter"`
-	EndChapter    int `json:"endChapter"`
+	BookID        string `json:"bookId"`
+	ImportedCount int    `json:"importedCount"`
+	TotalWords    int    `json:"totalWords"`
+	NextChapter   int    `json:"nextChapter"`
 }
 
 // PipelineRunner 表示the pipeline runner。
@@ -126,7 +179,7 @@ func NewPipelineRunner(config PipelineConfig) *PipelineRunner {
 // RunChapterPipeline runs the chapter pipeline
 func (pr *PipelineRunner) RunChapterPipeline(ctx context.Context, bookID string, chapterNumber int) (*ChapterPipelineResult, error) {
 	startTime := time.Now()
-	pr.logger.Info("Starting chapter pipeline", map[string]any{
+	pr.logger.Info("开始运行章节管道", map[string]any{
 		"bookId":        bookID,
 		"chapterNumber": chapterNumber,
 	})
@@ -188,32 +241,32 @@ func (pr *PipelineRunner) RunChapterPipeline(ctx context.Context, bookID string,
 }
 
 func (pr *PipelineRunner) planChapter(ctx context.Context, bookConfig *models.BookConfig, bookDir string, chapterNumber int) (*PlanChapterResult, error) {
-	agentCtx := agents.AgentContext{
-		Client:           pr.config.Client,
-		Model:            pr.config.Model,
-		ProjectRoot:      pr.config.ProjectRoot,
-		BookID:           bookConfig.ID,
-		Logger:           pr.logger,
-		OnStreamChunk:    pr.config.OnStreamChunk,
-		OnStreamProgress: pr.config.OnStreamProgress,
-	}
+	// agentCtx := agents.AgentContext{
+	// 	Client:           pr.config.Client,
+	// 	Model:            pr.config.Model,
+	// 	ProjectRoot:      pr.config.ProjectRoot,
+	// 	BookID:           bookConfig.ID,
+	// 	Logger:           pr.logger,
+	// 	OnStreamChunk:    pr.config.OnStreamChunk,
+	// 	OnStreamProgress: pr.config.OnStreamProgress,
+	// }
 
-	planner := agents.NewPlannerAgent(agentCtx)
-	input := agents.PlanChapterInput{
-		Book:          bookConfig,
-		BookDir:       bookDir,
-		ChapterNumber: chapterNumber,
-	}
+	// planner := agents.NewPlannerAgent(agentCtx)
+	// input := agents.PlanChapterInput{
+	// 	Book:          bookConfig,
+	// 	BookDir:       bookDir,
+	// 	ChapterNumber: chapterNumber,
+	// }
 
-	output, err := planner.PlanChapter(ctx, input)
-	if err != nil {
-		return nil, err
-	}
+	// output, err := planner.PlanChapter(ctx, input)
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	return &PlanChapterResult{
-		Intent:         &output.Intent,
-		IntentMarkdown: output.IntentMarkdown,
-		RuntimePath:    output.RuntimePath,
+		// Intent:         &output.Intent,
+		// IntentMarkdown: output.IntentMarkdown,
+		// RuntimePath:    output.RuntimePath,
 	}, nil
 }
 
@@ -233,10 +286,10 @@ func (pr *PipelineRunner) composeChapter(ctx context.Context, bookConfig *models
 		Book:          bookConfig,
 		BookDir:       bookDir,
 		ChapterNumber: chapterNumber,
-		Plan: agents.PlanChapterOutput{
-			Intent:         *planResult.Intent,
-			IntentMarkdown: planResult.IntentMarkdown,
-			RuntimePath:    planResult.RuntimePath,
+		Plan:          agents.PlanChapterOutput{
+			// Intent:         planResult.Intent,
+			// IntentMarkdown: planResult.IntentMarkdown,
+			// RuntimePath:    planResult.RuntimePath,
 		},
 	}
 
