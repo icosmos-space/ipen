@@ -42,6 +42,10 @@ type BookRules struct {
 	AllowedDeviations         []string            `json:"allowedDeviations"`
 }
 
+func (bk *BookRules) Validate() error {
+	return validate.Struct(bk)
+}
+
 // ParsedBookRules 表示parsed book rules with body。
 type ParsedBookRules struct {
 	Rules BookRules `json:"rules"`

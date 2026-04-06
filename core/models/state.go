@@ -1,3 +1,7 @@
+/**
+ * Canonical state files — 每本书三大真相来源
+ * 会作为markdown文件进行持久化，在这里进行解析和验证
+ */
 package models
 
 // CurrentState 当前状态
@@ -89,7 +93,7 @@ type PendingHook struct {
 	// 钩子类型
 	Type string `json:"type"`
 	// 钩子状态
-	Status BookHookStatus `json:"status"`
+	Status BookHookStatus `json:"status" validate:"required,oneof: 未解决 进行中 已解决"`
 	// 最新进度
 	LastProgress string `json:"lastProgress"`
 	// 预期解决进度
