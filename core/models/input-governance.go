@@ -60,7 +60,7 @@ type HookPressure struct {
 	Type              string             `json:"type"`
 	Movement          HookMovement       `json:"movement"`
 	Pressure          HookPressureLevel  `json:"pressure"`
-	PayoffTiming      *HookPayoffTiming  `json:"payoffTiming,omitempty"`
+	PayoffTiming      *HookPayoffTiming  `json:"payoffTiming" validate:"omitempty"`
 	Phase             HookPressurePhase  `json:"phase"`
 	Reason            HookPressureReason `json:"reason"`
 	BlockSiblingHooks bool               `json:"blockSiblingHooks"`
@@ -77,13 +77,13 @@ type HookAgenda struct {
 
 // ChapterIntent 表示the intent for a chapter。
 type ChapterIntent struct {
-	Chapter        int               `json:"chapter"`
-	Goal           string            `json:"goal"`
-	OutlineNode    *string           `json:"outlineNode,omitempty"`
-	SceneDirective *string           `json:"sceneDirective,omitempty"`
-	ArcDirective   *string           `json:"arcDirective,omitempty"`
-	MoodDirective  *string           `json:"moodDirective,omitempty"`
-	TitleDirective *string           `json:"titleDirective,omitempty"`
+	Chapter        int               `json:"chapter" validate:"required,min=1"`
+	Goal           string            `json:"goal" validate:"required,min=1"`
+	OutlineNode    *string           `json:"outlineNode" validate:"omitempty"`
+	SceneDirective *string           `json:"sceneDirective" validate:"omitempty"`
+	ArcDirective   *string           `json:"arcDirective" validate:"omitempty"`
+	MoodDirective  *string           `json:"moodDirective" validate:"omitempty"`
+	TitleDirective *string           `json:"titleDirective" validate:"omitempty"`
 	MustKeep       []string          `json:"mustKeep"`
 	MustAvoid      []string          `json:"mustAvoid"`
 	StyleEmphasis  []string          `json:"styleEmphasis"`
@@ -95,26 +95,26 @@ type ChapterIntent struct {
 type ContextSource struct {
 	Source  string  `json:"source"`
 	Reason  string  `json:"reason"`
-	Excerpt *string `json:"excerpt,omitempty"`
+	Excerpt *string `json:"excerpt" validate:"omitempty"`
 }
 
 // ContextPackage 表示a context package。
 type ContextPackage struct {
-	Chapter         int             `json:"chapter"`
+	Chapter         int             `json:"chapter" validate:"required,min=1"`
 	SelectedContext []ContextSource `json:"selectedContext"`
 }
 
-// RuleLayerScope 表示the scope of a rule layer。
+// RuleLayerScope 规则层范围
 type RuleLayerScope string
 
 const (
-	ScopeGlobal RuleLayerScope = "global"
-	ScopeBook   RuleLayerScope = "book"
-	ScopeArc    RuleLayerScope = "arc"
-	ScopeLocal  RuleLayerScope = "local"
+	ScopeGlobal RuleLayerScope = "全局"
+	ScopeBook   RuleLayerScope = "书籍"
+	ScopeArc    RuleLayerScope = "弧"
+	ScopeLocal  RuleLayerScope = "本地"
 )
 
-// RuleLayer 表示a rule layer。
+// RuleLayer 规则层。
 type RuleLayer struct {
 	ID         string         `json:"id"`
 	Name       string         `json:"name"`
@@ -122,7 +122,7 @@ type RuleLayer struct {
 	Scope      RuleLayerScope `json:"scope"`
 }
 
-// OverrideEdge 表示an override edge。
+// OverrideEdge 覆写边缘。
 type OverrideEdge struct {
 	From    string `json:"from"`
 	To      string `json:"to"`
@@ -130,7 +130,7 @@ type OverrideEdge struct {
 	Scope   string `json:"scope"`
 }
 
-// ActiveOverride 表示an active override。
+// ActiveOverride 活动覆写
 type ActiveOverride struct {
 	From   string `json:"from"`
 	To     string `json:"to"`
@@ -138,14 +138,14 @@ type ActiveOverride struct {
 	Reason string `json:"reason"`
 }
 
-// RuleStackSections 表示sections of a rule stack。
+// RuleStackSections 规则栈部分
 type RuleStackSections struct {
 	Hard       []string `json:"hard"`
 	Soft       []string `json:"soft"`
 	Diagnostic []string `json:"diagnostic"`
 }
 
-// RuleStack 表示a rule stack。
+// RuleStack 规则栈
 type RuleStack struct {
 	Layers          []RuleLayer       `json:"layers"`
 	Sections        RuleStackSections `json:"sections"`
@@ -153,9 +153,9 @@ type RuleStack struct {
 	ActiveOverrides []ActiveOverride  `json:"activeOverrides"`
 }
 
-// ChapterTrace 表示the trace for a chapter。
+// ChapterTrace 章节追踪
 type ChapterTrace struct {
-	Chapter         int      `json:"chapter"`
+	Chapter         int      `json:"chapter" validate:"required,min=1"`
 	PlannerInputs   []string `json:"plannerInputs"`
 	ComposerInputs  []string `json:"composerInputs"`
 	SelectedSources []string `json:"selectedSources"`
