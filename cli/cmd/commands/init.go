@@ -21,14 +21,14 @@ func InitCommand() *cobra.Command {
 		RunE:  runInit,
 	}
 
-	cmd.Flags().StringP("lang", "g", "zh", "Default writing language: zh or en")
+	cmd.Flags().StringP("lang", "g", "zh", "缺省写作语言: zh or en")
 	return cmd
 }
 
 func runInit(cmd *cobra.Command, args []string) error {
 	lang, _ := cmd.Flags().GetString("lang")
 	if lang != "zh" && lang != "en" {
-		return fmt.Errorf("unsupported --lang %q, must be zh or en", lang)
+		return fmt.Errorf("不支持的 --lang %q，必须是 zh 或 en", lang)
 	}
 
 	cwd, err := os.Getwd()
@@ -49,7 +49,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 	configPath := filepath.Join(projectDir, "ipen.json")
 
 	if _, err := os.Stat(configPath); err == nil {
-		return fmt.Errorf("ipen.json already exists in %s", projectDir)
+		return fmt.Errorf("ipen.json 已存在于目录 %s 中", projectDir)
 	}
 
 	if err := os.MkdirAll(filepath.Join(projectDir, "books"), 0755); err != nil {
@@ -89,31 +89,28 @@ func runInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	_ = os.WriteFile(filepath.Join(projectDir, ".nvmrc"), []byte("22\n"), 0644)
-	_ = os.WriteFile(filepath.Join(projectDir, ".node-version"), []byte("22\n"), 0644)
-
 	if err := os.WriteFile(filepath.Join(projectDir, ".env"), []byte(defaultProjectEnv(hasGlobalConfig())), 0644); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(projectDir, ".gitignore"), []byte(".env\nnode_modules/\n.DS_Store\n"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(projectDir, ".gitignore"), []byte(".env\n.DS_Store\n"), 0644); err != nil {
 		return err
 	}
 
-	fmt.Printf("Project initialized at %s\n\n", projectDir)
+	fmt.Printf("项目初始化在目录 %s\n\n", projectDir)
 	if hasGlobalConfig() {
-		fmt.Println("Global LLM config detected. Ready to go!")
+		fmt.Println("全局 LLM 配置已检测到。准备就绪！")
 	} else {
-		fmt.Println("Next steps:")
+		fmt.Println("下一步:")
 		fmt.Println("  ipen config set-global --provider openai --base-url <api-url> --api-key <key> --model <model>")
-		fmt.Println("  # or edit .env in this project")
+		fmt.Println("  # 或在当前项目目录中编辑 .env 文件")
 	}
 	if len(args) > 0 {
 		fmt.Printf("  cd %s\n", args[0])
 	}
 	if lang == "en" {
-		fmt.Println("  ipen book create --title \"My Novel\" --genre progression --platform qidian --lang en")
+		fmt.Println("  ipen book create --title \"My Novel\" --genre progression --platform 七点 --lang en")
 	} else {
-		fmt.Println("  ipen book create --title \"我的小说\" --genre xuanhuan --platform tomato --lang zh")
+		fmt.Println("  ipen book create --title \"我的小说\" --genre xuanhuan --platform 番茄 --lang zh")
 	}
 	fmt.Println("  ipen write next <book-id>")
 
