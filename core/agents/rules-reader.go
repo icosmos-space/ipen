@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/icosmos-space/ipen/core/genres"
+	"github.com/icosmos-space/ipen/core/data"
 )
 
 // GenreProfile 表示a genre profile。
@@ -180,7 +180,7 @@ func tryReadFile(path string) (string, error) {
 
 // tryReadEmbeddedFile reads a file from the embedded genres filesystem
 func tryReadEmbeddedFile(name string) (string, error) {
-	data, err := genres.Files.ReadFile("genres/" + name)
+	data, err := fs.ReadFile(data.Genres, name)
 	if err != nil {
 		return "", nil
 	}
@@ -189,7 +189,7 @@ func tryReadEmbeddedFile(name string) (string, error) {
 
 // listEmbeddedGenres lists all .md files from the embedded genres filesystem
 func listEmbeddedGenres() ([]string, error) {
-	entries, err := fs.ReadDir(genres.Files, "genres")
+	entries, err := fs.ReadDir(data.Genres, ".")
 	if err != nil {
 		return nil, err
 	}
